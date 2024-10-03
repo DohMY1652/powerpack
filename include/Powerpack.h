@@ -1,16 +1,17 @@
 #ifndef POWERPACK_H
 #define POWERPACK_H
 
+#include <vector>
+
 #include "Sensor.h"
 #include "PWM.h"
 #include "ControlModule.h"
 #include "ReferenceGoverner.h"
-
-#include <yaml-cpp/yaml.h>
+#include "DatabaseConfig.h"
 
 class Powerpack {
     public:
-        Powerpack();
+        Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> pos_pid_gains, std::vector<double> neg_pid_gains);
         ~Powerpack();
 
         void get_pos_powerpack_info();
@@ -28,9 +29,11 @@ class Powerpack {
         void run();
 
     private:
-        Sensor* sensor;
-        PWM* pwm;
-        ReferenceGoverner* referencegoverner;
+        std::unique_ptr<Sensor> sensor;
+        std::unique_ptr<PWM> pwm;
+        std::unique_ptr<ReferenceGoverner> referencegoverner;
+
+
         int n_pos_channel;
         int n_neg_channel;
         std::vector<ControlModule> modules;

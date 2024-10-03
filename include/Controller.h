@@ -1,7 +1,6 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <yaml-cpp/yaml.h>
 #include <vector>
 // #include <Eigen/Dense>
 
@@ -28,7 +27,7 @@ class Controller {
 
 class PIDController : public Controller {
     public:
-        PIDController(bool is_positive);
+        PIDController(bool is_positive, std::vector<double> gains);
         ~PIDController();
 
         virtual void calculate_control() override;

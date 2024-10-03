@@ -3,22 +3,25 @@
 #include "Powerpack.h"
 
 
-Powerpack::Powerpack() {
+Powerpack::Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> pos_pid_gains, std::vector<double> neg_pid_gains) :
+    n_pos_channel(n_pos_channel),
+    n_neg_channel(n_neg_channel) {
 
-    YAML::Node config = YAML::LoadFile("/home/risebrl/brl_cpp/Powerpack/config/config.yaml");
-    n_pos_channel = config["positive_channel"]["n_channel"].as<int>();
-    n_neg_channel = config["negative_channel"]["n_channel"].as<int>();
-
-    sensor = new Sensor(n_pos_channel+n_neg_channel);
-    pwm = new PWM((3*(n_pos_channel+n_neg_channel)));
-    referencegoverner = new ReferenceGoverner((n_pos_channel+n_neg_channel), 0);
+    
+        
+    sensor = std::make_unique<Sensor>(n_pos_channel+n_neg_channel);
+    pwm = std::make_unique<PWM>(3*(n_pos_channel+n_neg_channel));
+    referencegoverner = std::make_unique<ReferenceGoverner>((n_pos_channel+n_neg_channel), 0);
+    
+    // pwm = new PWM((3*(n_pos_channel+n_neg_channel)));
+    // referencegoverner = new ReferenceGoverner((n_pos_channel+n_neg_channel), 0);
 
     for (int i = 0; i < n_pos_channel; i++) {
-        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, positive,i, {3*i, 3*i+1, 3*i+2});
+        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, positive,i, {3*i, 3*i+1, 3*i+2}, pos_pid_gains);
         modules.push_back(tmp_module);
     }
     for (int i = n_pos_channel; i < n_pos_channel+n_neg_channel; i++) {
-        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, negative, i, {3*i, 3*i+1, 3*i+2});
+        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, negative, i, {3*i, 3*i+1, 3*i+2}, neg_pid_gains);
         modules.push_back(tmp_module);
     }
 

@@ -2,7 +2,7 @@
 
 #include "ControlModule.h"
 
-ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx) :
+ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx,  std::vector<double> pid_gains) :
     sensor(sensor),
     pwm(pwm),
     referencegoverner(referencegoverner),
@@ -10,7 +10,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
     sensor_idx(sensor_idx),
     pwm_idx(pwm_idx) {
         data.resize(pwm_idx.size());
-        controller = new PIDController(is_positive);
+        controller = new PIDController(is_positive, pid_gains);
         // std::cout << "Control module generated" << std::endl;
         // std::cout << "Channel type : ";
         // if (is_positive) {

@@ -28,34 +28,21 @@ std::vector<double> Controller::get_control_signal() {
     return control;
 }
 
-PIDController::PIDController(bool is_poisitive) :
+PIDController::PIDController(bool is_poisitive, std::vector<double> gains) :
     previous_error(0),
     cumulated_error(0){
         controller_type = "PID";
         control = {0, 0, 0};
-        YAML::Node config = YAML::LoadFile("/home/risebrl/brl_cpp/Powerpack/config/config.yaml");
-        if(is_poisitive) {
-            kp_micro = config["pos_pid_gains"]["kp_micro"].as<double>();
-            ki_micro = config["pos_pid_gains"]["ki_micro"].as<double>();
-            kd_micro = config["pos_pid_gains"]["kd_micro"].as<double>();
-            kp_macro = config["pos_pid_gains"]["kp_macro"].as<double>();
-            ki_macro = config["pos_pid_gains"]["ki_macro"].as<double>();
-            kd_macro = config["pos_pid_gains"]["kd_macro"].as<double>();
-            kp_atm = config["pos_pid_gains"]["kp_atm"].as<double>();
-            ki_atm = config["pos_pid_gains"]["ki_atm"].as<double>();
-            kd_atm = config["pos_pid_gains"]["kd_atm"].as<double>();
-        } else {
-            kp_micro = config["neg_pid_gains"]["kp_micro"].as<double>();
-            ki_micro = config["neg_pid_gains"]["ki_micro"].as<double>();
-            kd_micro = config["neg_pid_gains"]["kd_micro"].as<double>();
-            kp_macro = config["neg_pid_gains"]["kp_macro"].as<double>();
-            ki_macro = config["neg_pid_gains"]["ki_macro"].as<double>();
-            kd_macro = config["neg_pid_gains"]["kd_macro"].as<double>();
-            kp_atm = config["neg_pid_gains"]["kp_atm"].as<double>();
-            ki_atm = config["neg_pid_gains"]["ki_atm"].as<double>();
-            kd_atm = config["neg_pid_gains"]["kd_atm"].as<double>();
-        }   
-
+            kp_micro = gains[0];
+            ki_micro = gains[1];
+            kd_micro = gains[2];
+            kp_macro = gains[3];
+            ki_macro = gains[4];
+            kd_macro = gains[5];
+            kp_atm = gains[6];
+            ki_atm = gains[7];
+            kd_atm = gains[8];
+       
 }
 
 PIDController::~PIDController() {

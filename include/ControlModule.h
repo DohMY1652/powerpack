@@ -14,7 +14,7 @@
 class ControlModule {
     public:
 
-        ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx);
+        ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx, std::vector<double> pid_gains);
         ~ControlModule();
 
         void get_channel_info();
