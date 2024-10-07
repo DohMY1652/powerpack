@@ -14,6 +14,8 @@ public:
     void print_all_data();
     int get_n_channel();
 
+    std::vector<unsigned int> get_control_signal();
+
 private:
     int n_channel;
     std::vector<unsigned int> data;

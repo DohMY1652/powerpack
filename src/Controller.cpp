@@ -72,10 +72,17 @@ void PIDController::print_controller_info() {
 }
 
 void PIDController::calculate_control() {
+    static int i = 0;
     double target = target_trajectory[0];
     double error = target-now;
     cumulated_error += error;
-    control[0] = kp_micro*error+ki_micro*cumulated_error+kd_micro*(error-previous_error);
-    control[1] = kp_macro*error+ki_macro*cumulated_error+kd_macro*(error-previous_error);
-    control[2] = 1000-(kp_atm*error+ki_atm*cumulated_error+kd_atm*(error-previous_error));
+    // control[0] = kp_micro*error+ki_micro*cumulated_error+kd_micro*(error-previous_error);
+    // control[1] = kp_macro*error+ki_macro*cumulated_error+kd_macro*(error-previous_error);
+    // control[2] = 1000-(kp_atm*error+ki_atm*cumulated_error+kd_atm*(error-previous_error));
+    control[0] = i;
+    control[1] = i;
+    control[2] = i++;
+    if (i > 1000) {
+        i = 0;
+    }
 }

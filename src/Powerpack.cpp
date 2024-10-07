@@ -72,8 +72,8 @@ void Powerpack::print_powerpack_info() {
 
 }
 
-void Powerpack::update_sensor() {
-    sensor->update();
+void Powerpack::update_sensor(std::vector<double> _data) {
+    sensor->update(_data);
 }
 
 void Powerpack::update_reference() {
@@ -101,9 +101,12 @@ void Powerpack::set_all_control_signal() {
     pwm->update(control_signal);
 }
 
+std::vector<unsigned int>  Powerpack::get_control_signal() {
+    return pwm->get_control_signal();
+}
+
 
 void Powerpack::run() {
-    update_sensor();
     update_reference();
     calculate_control_signal();
     update_pwm();

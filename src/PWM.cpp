@@ -35,3 +35,7 @@ void PWM::print_all_data() {
 int PWM::get_n_channel() {
     return n_channel;
 }
+
+std::vector<unsigned int> PWM::get_control_signal() {
+    return data;
+}

@@ -22,9 +22,11 @@ class Powerpack {
         void set_all_control_signal();
         void print_control_signal();
         
-        void update_sensor();
+        void update_sensor(std::vector<double> _data);
         void update_reference();
         void update_pwm();
+
+        std::vector<unsigned int>  get_control_signal();
 
         void run();
 

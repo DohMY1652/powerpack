@@ -8,7 +8,7 @@ class Sensor {
         Sensor(int n_channel);
         ~Sensor();
 
-        virtual void update();
+        void update(std::vector<double> _data);
         void print_all_data();
         double get_data(int index);
         int get_n_channel();
@@ -19,9 +19,5 @@ class Sensor {
         std::vector<double> data;
 };
 
-
-
-class ADS1263 : public Sensor {
-    virtual void update() override;
-};
 #endif //SENSOR_H
+

@@ -11,11 +11,8 @@ Sensor::~Sensor() {
 
 }
 
-void Sensor::update() {
-    for (int i = 0; i < n_channel; i++) {
-        data[i] = double(i);
-    }
-    std::cout << "sensor updated" << std::endl;
+void Sensor::update(std::vector<double> _data) {
+    data = _data;
 }
 
 double Sensor::get_data(int index) {
@@ -38,7 +35,3 @@ void Sensor::print_all_data() {
     std::cout << std::endl;
 }
 
-
-void ADS1263::update() {
-    
-}

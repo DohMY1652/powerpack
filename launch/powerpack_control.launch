@@ -1,0 +1,11 @@
+<launch>
+    <param name="yaml_file" value="$(find powerpack)/config/config.yaml" />
+    
+    <node pkg="powerpack" type="output_integrator.py" name="output_integrator" />
+    <node pkg="powerpack" type="pwm_output.py" name="pwm_output" />
+    <node pkg="powerpack" type="sensor_input.py" name="sensor_input" />
+    
+    <node pkg="powerpack" type="Pos_neg_controller" name="pos_neg_controller">
+        <param name="yaml_file" value="$(find powerpack)/config/config.yaml" />
+    </node>
+</launch>
