@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     DatabaseConfig data(config);
     Powerpack powerpack(data.get_n_pos_channel(), data.get_n_neg_Channel(), data.get_pos_pid_gains(), data.get_neg_pid_gains());
 
-    ros::Subscriber sub = n.subscribe<std_msgs::Float32MultiArray>("sen_values", 100, [&powerpack](const boost::shared_ptr<const std_msgs::Float32MultiArray>& data) {
+    ros::Subscriber sen_sub = n.subscribe<std_msgs::Float32MultiArray>("sen_values", 100, [&powerpack](const boost::shared_ptr<const std_msgs::Float32MultiArray>& data) {
         std::vector<double> data_vector;
         data_vector.reserve(data->data.size());
 
@@ -38,6 +38,18 @@ int main(int argc, char* argv[]) {
         powerpack.update_sensor(data_vector);
       } 
     );
+
+    ros::Subscriber ref_sub = n.subscribe<std_msgs::Float32MultiArray>("ref_values", 100, [&powerpack](const boost::shared_ptr<const std_msgs::Float32MultiArray>& data) {
+        std::vector<double> data_vector;
+        data_vector.reserve(data->data.size());
+
+        for (const auto& value : data->data) {
+            data_vector.push_back(static_cast<double>(value));
+        }
+        powerpack.update_reference(data_vector);
+      } 
+    );
+
     ros::Publisher chatter_pub = n.advertise<std_msgs::UInt16MultiArray>("mpc_pwm", 10);
     ros::Rate loop_rate(100); // 100 Hz
 

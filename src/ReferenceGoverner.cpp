@@ -13,11 +13,21 @@ ReferenceGoverner::~ReferenceGoverner() {
 
 }
 
-void ReferenceGoverner::update() {
-    for (int i = 0; i < n_channel; i++) {
-        data[i] = std::vector<double> {double(i*2), double(i*4), double(i*6)};
+void ReferenceGoverner::update(std::vector<std::vector<double>> _data) {
+    data = _data;
+}
+void ReferenceGoverner::update(std::vector<double> _data) {
+    std::vector<double> tmp;
+    for (int idx = 0 ; idx < data.size(); idx++) {
+        if (idx <= _data.size()) {
+            tmp = std::vector<double>(data[0].size(), _data[idx]);
+        }
+        else {
+            tmp =  std::vector<double>(data[0].size(), 101.325);
+        }
+        data[idx] = tmp;
     }
-    std::cout << "reference updated" << std::endl;
+    
 }
 
 void ReferenceGoverner::print_all_data() {

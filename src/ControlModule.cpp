@@ -2,7 +2,7 @@
 
 #include "ControlModule.h"
 
-ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx,  std::vector<double> pid_gains) :
+ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx,  std::vector<double> gains) :
     sensor(sensor),
     pwm(pwm),
     referencegoverner(referencegoverner),
@@ -10,7 +10,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
     sensor_idx(sensor_idx),
     pwm_idx(pwm_idx) {
         data.resize(pwm_idx.size());
-        controller = new PIDController(is_positive, pid_gains);
+        controller = new MPCController(is_positive, gains);
         // std::cout << "Control module generated" << std::endl;
         // std::cout << "Channel type : ";
         // if (is_positive) {
@@ -22,7 +22,6 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
 }
 
 ControlModule::~ControlModule() {
-
 }
 
 void ControlModule::get_channel_info() {
@@ -45,8 +44,8 @@ bool ControlModule::get_channel_type() {
     return is_positive;
 }
 
-void ControlModule::calculate_control_signal(double now, std::vector<double> target_trajectory) {
-    controller->set_now_state(now);
+void ControlModule::calculate_control_signal(double now, double P_micro, double P_macro, std::vector<double> target_trajectory) {
+    controller->set_now_state(now, P_micro, P_macro);
     controller->set_now_target_trajectory(target_trajectory);
     controller->calculate_control();
     std::vector<double> control_signal =  controller->get_control_signal();

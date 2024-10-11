@@ -7,7 +7,6 @@ Powerpack::Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> p
     n_pos_channel(n_pos_channel),
     n_neg_channel(n_neg_channel) {
 
-    
         
     sensor = std::make_unique<Sensor>(n_pos_channel+n_neg_channel);
     pwm = std::make_unique<PWM>(3*(n_pos_channel+n_neg_channel));
@@ -76,8 +75,8 @@ void Powerpack::update_sensor(std::vector<double> _data) {
     sensor->update(_data);
 }
 
-void Powerpack::update_reference() {
-    referencegoverner->update();
+void Powerpack::update_reference(std::vector<double> _data) {
+    referencegoverner->update(_data);
 }
 
 void Powerpack::update_pwm(){
@@ -86,8 +85,9 @@ void Powerpack::update_pwm(){
 
 void Powerpack::calculate_control_signal() {
     for (int i = 0; i<(n_pos_channel+n_neg_channel); i++) {
-        modules[i].calculate_control_signal(sensor->get_data(i), referencegoverner->get_data(i));
+        modules[i].calculate_control_signal(sensor->get_data(i+2),sensor->get_data(0),sensor->get_data(1), referencegoverner->get_data(i));
     }
+
     
 }
 
@@ -107,7 +107,6 @@ std::vector<unsigned int>  Powerpack::get_control_signal() {
 
 
 void Powerpack::run() {
-    update_reference();
     calculate_control_signal();
     update_pwm();
     

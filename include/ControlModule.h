@@ -14,12 +14,12 @@
 class ControlModule {
     public:
 
-        ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx, std::vector<double> pid_gains);
+        ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& referencegoverner, bool is_positive, int sensor_idx, std::vector<int> pwm_idx, std::vector<double> gains);
         ~ControlModule();
 
         void get_channel_info();
         bool get_channel_type();
-        void calculate_control_signal(double now, std::vector<double> target_trajectory);
+        void calculate_control_signal(double now, double P_micro, double P_macro, std::vector<double> target_trajectory);
         std::vector<double> get_control_signal();
         std::string get_controller_type();
 

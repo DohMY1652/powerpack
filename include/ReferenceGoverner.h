@@ -8,7 +8,8 @@ class ReferenceGoverner{
         ReferenceGoverner(int n_channel, int id);
         ~ReferenceGoverner();
 
-        void update();
+        void update(std::vector<double> _data);
+        void update(std::vector<std::vector<double>> _data);
         void print_all_data();
         std::vector<double> get_data(int idx);
 
