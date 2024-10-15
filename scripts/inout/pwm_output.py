@@ -11,7 +11,7 @@ import time
 import Adafruit_PCA9685
 
 pwm_module_1 = Adafruit_PCA9685.PCA9685(0x40)
-# pwm_module_2 = Adafruit_PCA9685.PCA9685(0x41)
+pwm_module_2 = Adafruit_PCA9685.PCA9685(0x41)
 
 
 valveMin = 0
@@ -30,7 +30,7 @@ def set_value(module, channel,value):
     module.set_pwm(channel,0,pulse)
 
 pwm_module_1.set_pwm_freq(1000)
-# pwm_module_2.set_pwm_freq(1000)
+pwm_module_2.set_pwm_freq(1000)
 
 
 def callback(data):
@@ -44,9 +44,10 @@ def callback(data):
         for pwm in uint16_data:
             if i <= 15:
                 set_value(pwm_module_1,i, pwm)
-                i += 1
-            # else :
-            #     set_value(pwm_module_2,i-16, pwm)
+            else :
+                set_value(pwm_module_2,i-16, pwm)
+            i += 1
+                
             
 def control_out():
     rospy.init_node('pwm_output', anonymous=True)

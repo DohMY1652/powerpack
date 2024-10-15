@@ -10,8 +10,8 @@ class Valve {
         void calculate_valve_dynamic(double input, double pressure_in, double pressure_out);
         double get_flow_rate();
         double get_round_input();
-        double get_pressure_in();
-        double get_pressure_out();
+        double get_round_pressure_in();
+        double get_round_pressure_out();
 
     private:
         bool is_positive;

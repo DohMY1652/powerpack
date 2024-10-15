@@ -68,9 +68,9 @@ double Valve::get_flow_rate(){
 double Valve::get_round_input() {
     return round_input;
 }
-double Valve::get_pressure_in() {
+double Valve::get_round_pressure_in() {
     return round_pressure_in;
 }
-double Valve::get_pressure_out() {
+double Valve::get_round_pressure_out() {
     return round_pressure_out;
 }
