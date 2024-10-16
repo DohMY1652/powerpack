@@ -19,7 +19,7 @@ class ControlModule {
 
         void get_channel_info();
         bool get_channel_type();
-        void calculate_control_signal(double now, double P_micro, double P_macro, std::vector<double> target_trajectory);
+        void calculate_control_signal(double now, double P_micro, double P_macro, double target);
         std::vector<double> get_control_signal();
         std::string get_controller_type();
 

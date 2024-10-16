@@ -19,6 +19,11 @@ double Sensor::get_data(int index) {
     return data[index];
 }
 
+std::vector<double> Sensor::get_all_data() {
+    return data;
+}
+
+
 int Sensor::get_n_channel() {
     return n_channel;
 }

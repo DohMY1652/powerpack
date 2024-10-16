@@ -11,7 +11,7 @@
 
 class Powerpack {
     public:
-        Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> pos_pid_gains, std::vector<double> neg_pid_gains);
+        Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> gains);
         ~Powerpack();
 
         void get_pos_powerpack_info();
@@ -26,6 +26,8 @@ class Powerpack {
         void update_reference(std::vector<double> _data);
         void update_pwm();
 
+        std::vector<double> get_all_sensor_data();
+        std::vector<double> get_all_reference_data();
         std::vector<unsigned int>  get_control_signal();
 
         void run();

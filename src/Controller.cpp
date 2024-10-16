@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "Controller.h"
-#include <osqp.h> // OSQP 헤더 추가
+#include <osqp.h> 
 
 
 Controller::Controller() {
@@ -21,6 +21,10 @@ void Controller::set_now_state(double _P_now, double _P_micro, double _P_macro) 
 
 void Controller::set_now_target_trajectory(std::vector<double> _target_trajectory) {
     target_trajectory = _target_trajectory;
+}
+
+void Controller::set_now_target_trajectory(double target) {
+    target_trajectory.resize(target_trajectory.size(),target);
 }
 
 
@@ -105,6 +109,21 @@ MPCController::MPCController(bool is_poisitive, std::vector<double> gains) :
     Ts = gains[1];   
     Q_value = gains[2];
     R_value = gains[3];
+    kp_micro = gains[4];
+    kp_macro = gains[5];
+    kp_atm = gains[6];
+    n_x = gains[7];
+    n_u = gains[8];
+
+    Q.resize(n_x*NP,n_x*NP);
+    Q.setZero();
+    Q.diagonal().setConstant(Q_value);
+    R.resize(n_u*NP,n_u*NP);
+    R.setZero();
+    R.diagonal().setConstant(R_value);
+    constraint_A.resize(n_u*NP,n_u*NP);
+    constraint_A.setZero();
+    constraint_A.diagonal().setConstant(1);
 }
 
 MPCController::~MPCController() {
@@ -113,8 +132,8 @@ MPCController::~MPCController() {
 
 
 void MPCController::calculate_input_reference() {
-    Eigen::VectorXd target_trajectory_eigen = Eigen::VectorXd::Map(target_trajectory.data(), target_trajectory.size());
-    Eigen::VectorXd tmp_vector = Eigen::VectorXd::Constant(target_trajectory_eigen.size(), P_now);
+    Eigen::VectorXd target_trajectory_eigen = Eigen::VectorXd::Map(target_trajectory.data(), NP);
+    Eigen::VectorXd tmp_vector = Eigen::VectorXd::Constant(NP, P_now);
     Eigen::VectorXd now_error = target_trajectory_eigen - tmp_vector;
 
 
@@ -135,7 +154,7 @@ void MPCController::calculate_input_reference() {
 }
 
 void MPCController::calculate_A_B_matrix() {
-    for (int idx = 0; idx < input_reference_micro.size(); idx++) {
+    for (int idx = 0; idx < NP; idx++) {
         double tmp_A;
         Eigen::Vector3d tmp_B;
         valve_micro->calculate_valve_dynamic(input_reference_micro[idx],P_micro, P_now);
@@ -152,17 +171,66 @@ void MPCController::calculate_A_B_matrix() {
     }
 }
 
-void MPCController::calculate_H_F_matrix() {
+void MPCController::calculate_P_q_matrix() {
+    Eigen::MatrixXd S_bar = Eigen::MatrixXd::Zero(n_x*NP, n_u*NP);
+    for (int i = 0; i < A_s.size(); ++i) {
+        double A  = A_s[i];
+        Eigen::Vector3d B = B_s[i];
+        for (int j = 0; j <= i; ++j) {
+            if (i == j) {
+                int row = i;
+                int column = i*n_u;
+                S_bar.block(row, column, n_x, B.size()) = B;
+            }
+            else if (j < i) {
+                int row = i;
+                int column = j*n_u;
+                Eigen::Vector3d tmp_mat = B;
+                for (int k = 0; k <= i-j; ++k) {
+                    tmp_mat  = A * tmp_mat;
+                }
+                 S_bar.block(row, column, n_x, B.size()) = tmp_mat;
+            }
+        }
+    }
+    Eigen::MatrixXd T_bar = Eigen::MatrixXd::Zero(NP, n_x);
+    Eigen::MatrixXd tmp(1, 1);
+    for(int i = 0; i < A_s.size(); ++i) {
+        double A  = A_s[i];
+        tmp = A*tmp;
+        int row = i;
+        int column = 1;
+        T_bar.block(row, column, n_x, n_x) = tmp;
+    }
     
+    P = 2*(R+(S_bar.transpose()*Q*S_bar));
+    q = P_now*2*T_bar.transpose()*Q*S_bar;   
+
 }
 
+
+void MPCController::calculate_constraint_matrix() {
+    UL.resize(n_u*NP,1);
+    LL.resize(n_u*NP,1);
+    for (int i = 0; i < NP; ++i) {
+        UL(i * 3) = 100 - input_reference_micro(i);      
+        UL(i * 3 + 1) = 100 - input_reference_macro(i);  
+        UL(i * 3 + 2) = 100 - input_reference_atm(i);
+        LL(i * 3) = 0 - input_reference_micro(i);      
+        LL(i * 3 + 1) = 0 - input_reference_macro(i);  
+        LL(i * 3 + 2) = 0 - input_reference_atm(i); 
+    }
+}
+
+void MPCController::solve_QP() {
+    
+}
 
 void MPCController::calculate_control() {
     calculate_input_reference();
     calculate_A_B_matrix();
-    //calculate flow rate, round u, round pin, round pout
-    //make matrix A, B with model
-    //make Q, R, S_bar, T_bar, R_bar, Q_bar, H, F, Yo matrix
+    calculate_P_q_matrix();
+    calculate_constraint_matrix();
     //set Constraints
     //solve QP
     //set control data

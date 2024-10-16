@@ -11,6 +11,7 @@ class DatabaseConfig {
         int get_n_neg_Channel();
         std::vector<double> get_pos_pid_gains();
         std::vector<double> get_neg_pid_gains();
+        std::vector<double> get_MPC_parameters();
 
 
     private:
@@ -19,6 +20,7 @@ class DatabaseConfig {
         int n_neg_channel;
         std::vector<double> pos_pid_gains;
         std::vector<double> neg_pid_gains;
+        std::vector<double> MPC_parameters;
 
 
 };

@@ -3,7 +3,7 @@
 #include "Powerpack.h"
 
 
-Powerpack::Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> pos_pid_gains, std::vector<double> neg_pid_gains) :
+Powerpack::Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> gains) :
     n_pos_channel(n_pos_channel),
     n_neg_channel(n_neg_channel) {
 
@@ -16,11 +16,11 @@ Powerpack::Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> p
     // referencegoverner = new ReferenceGoverner((n_pos_channel+n_neg_channel), 0);
 
     for (int i = 0; i < n_pos_channel; i++) {
-        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, positive,i, {3*i, 3*i+1, 3*i+2}, pos_pid_gains);
+        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, positive,i, {3*i, 3*i+1, 3*i+2}, gains);
         modules.push_back(tmp_module);
     }
     for (int i = n_pos_channel; i < n_pos_channel+n_neg_channel; i++) {
-        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, negative, i, {3*i, 3*i+1, 3*i+2}, neg_pid_gains);
+        ControlModule tmp_module(*sensor, *pwm, *referencegoverner, negative, i, {3*i, 3*i+1, 3*i+2}, gains);
         modules.push_back(tmp_module);
     }
 
@@ -105,6 +105,14 @@ std::vector<unsigned int>  Powerpack::get_control_signal() {
     return pwm->get_control_signal();
 }
 
+std::vector<double> Powerpack::get_all_sensor_data() {
+    return sensor->get_all_data();
+}
+
+std::vector<double> Powerpack::get_all_reference_data() {
+    return referencegoverner->get_all_data();
+}
+
 
 void Powerpack::run() {
     calculate_control_signal();
@@ -112,8 +120,8 @@ void Powerpack::run() {
     
 
     // get_all_powerpack_info();
-    sensor->print_all_data();
-    referencegoverner->print_all_data();
-    pwm->print_all_data();
+    // sensor->print_all_data();
+    // referencegoverner->print_all_data();
+    // pwm->print_all_data();
 }
 

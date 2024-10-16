@@ -44,9 +44,9 @@ bool ControlModule::get_channel_type() {
     return is_positive;
 }
 
-void ControlModule::calculate_control_signal(double now, double P_micro, double P_macro, std::vector<double> target_trajectory) {
+void ControlModule::calculate_control_signal(double now, double P_micro, double P_macro, double target) {
     controller->set_now_state(now, P_micro, P_macro);
-    controller->set_now_target_trajectory(target_trajectory);
+    controller->set_now_target_trajectory(target);
     controller->calculate_control();
     std::vector<double> control_signal =  controller->get_control_signal();
     data[0] = control_signal[0];

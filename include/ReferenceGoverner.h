@@ -9,14 +9,13 @@ class ReferenceGoverner{
         ~ReferenceGoverner();
 
         void update(std::vector<double> _data);
-        void update(std::vector<std::vector<double>> _data);
-        void print_all_data();
-        std::vector<double> get_data(int idx);
+        double get_data(int index);
+        std::vector<double> get_all_data();
 
     private:
         int n_channel;
         int id;
-        std::vector<std::vector<double>> data;
+        std::vector<double> data;
 
 };
 

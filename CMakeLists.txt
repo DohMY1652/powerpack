@@ -34,6 +34,7 @@ add_executable(Pos_neg_controller
   src/ReferenceGoverner.cpp 
   src/Sensor.cpp 
   src/Valve.cpp
+  src/Solver.cpp
 )
 
 target_link_libraries(Pos_neg_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})

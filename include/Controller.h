@@ -14,6 +14,7 @@ class Controller {
 
         void set_now_state(double P_now, double _P_micro, double _P_macro);
         void set_now_target_trajectory(std::vector<double> target_trajectory);
+        void set_now_target_trajectory(double target);
 
         std::string get_controller_type();
         std::vector<double> get_control_signal();
@@ -68,7 +69,9 @@ class MPCController : public Controller {
 
         void calculate_input_reference();
         void calculate_A_B_matrix();
-        void calculate_H_F_matrix();
+        void calculate_P_q_matrix();
+        void calculate_constraint_matrix();
+        void solve_QP();
         
 
     private:
@@ -80,6 +83,8 @@ class MPCController : public Controller {
         double kp_micro;
         double kp_macro;
         double kp_atm;
+        int n_x;
+        int n_u;
 
         std::vector<double> A_s;
         std::vector<Eigen::Vector3d> B_s;
@@ -87,6 +92,11 @@ class MPCController : public Controller {
 
         Eigen::MatrixXd Q;
         Eigen::MatrixXd R;
+        Eigen::MatrixXd P;
+        Eigen::MatrixXd q;
+        Eigen::MatrixXd constraint_A;
+        Eigen::MatrixXd UL;
+        Eigen::MatrixXd LL;
         Eigen::VectorXd input_reference_micro;
         Eigen::VectorXd input_reference_macro;
         Eigen::VectorXd input_reference_atm;
