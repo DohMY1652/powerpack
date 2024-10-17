@@ -10,9 +10,9 @@ MPC_parameters:
   Ts : 0.01
   Q_values : 10
   R_values : 1
-  kp_micro : 1
-  kp_macro : 1
-  kp_atm : 1
+  kp_micro : 3
+  kp_macro : 3
+  kp_atm : 3
   n_x : 1
   n_u : 3
 

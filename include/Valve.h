@@ -2,6 +2,7 @@
 #define VALVE_H
 
 #include <vector>
+#include <iostream>
 
 class Valve {
     public:
@@ -15,7 +16,7 @@ class Valve {
 
     private:
         bool is_positive;
-        std::vector<double> valve_const = {0.0002181, 0.007379, 0.7191};
+        std::vector<double> valve_const;
         double flow_rate;
         double round_input;
         double round_pressure_in;

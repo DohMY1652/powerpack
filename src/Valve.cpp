@@ -2,7 +2,8 @@
 
 #include "Valve.h"
 
-Valve::Valve() {
+Valve::Valve() :
+    valve_const({0.0002181, 0.007379, 0.7191}) {
 
 }
 
@@ -11,6 +12,12 @@ Valve::~Valve() {
 }
 
 void Valve::calculate_valve_dynamic(double input, double pressure_in, double pressure_out) {
+
+    std::cout << "input : " << input << std::endl;
+    std::cout << "pressure in : " << pressure_in << std::endl;
+    std::cout << "pressure out : " << pressure_out<< std::endl;
+
+
     double lpm2kgps = 0.0002155; //for air
 
     if (input >= 100) {
@@ -23,6 +30,7 @@ void Valve::calculate_valve_dynamic(double input, double pressure_in, double pre
     if (pressure_in - pressure_out >= 0) {
         flow_rate = (valve_const[0] * pressure_in + valve_const[1] * input-valve_const[2]) * 
         sqrt(2 * (pressure_in - pressure_out) * pressure_in);
+
         if (flow_rate >= 100) {
             flow_rate = 100;
             round_input = 0;
@@ -60,6 +68,8 @@ void Valve::calculate_valve_dynamic(double input, double pressure_in, double pre
     round_input *= lpm2kgps;
     round_pressure_in *= lpm2kgps;
     round_pressure_out *= lpm2kgps;
+
+    std::cout << "flow rate : " << flow_rate<< std::endl;
 }
 
 double Valve::get_flow_rate(){

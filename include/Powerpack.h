@@ -26,13 +26,19 @@ class Powerpack {
         void update_reference(std::vector<double> _data);
         void update_pwm();
 
+        void print_data_vector(const std::vector<double>& data_vector) const;
+
         std::vector<double> get_all_sensor_data();
         std::vector<double> get_all_reference_data();
         std::vector<unsigned int>  get_control_signal();
 
+
         void run();
 
     private:
+
+       
+
         std::unique_ptr<Sensor> sensor;
         std::unique_ptr<PWM> pwm;
         std::unique_ptr<ReferenceGoverner> referencegoverner;

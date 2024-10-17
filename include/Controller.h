@@ -2,10 +2,13 @@
 #define CONTROLLER_H
 
 #include <vector>
+#include <Eigen/Sparse> 
 #include <Eigen/Dense>
 #include <memory>
+#include <osqp.h> 
 
 #include "Valve.h"
+#include "Solver.h"
 
 class Controller {
     public:
@@ -13,8 +16,8 @@ class Controller {
         ~Controller();
 
         void set_now_state(double P_now, double _P_micro, double _P_macro);
-        void set_now_target_trajectory(std::vector<double> target_trajectory);
-        void set_now_target_trajectory(double target);
+        virtual void set_now_target_trajectory(double target) = 0;
+       
 
         std::string get_controller_type();
         std::vector<double> get_control_signal();
@@ -43,6 +46,7 @@ class PIDController : public Controller {
 
         virtual void calculate_control() override;
         virtual void print_controller_info() override;
+        void set_now_target_trajectory(double target) override;
 
     private:
         bool is_positive;
@@ -67,11 +71,15 @@ class MPCController : public Controller {
         virtual void calculate_control() override;
         virtual void print_controller_info() override;
 
+        void set_now_target_trajectory(double target) override;
+
         void calculate_input_reference();
         void calculate_A_B_matrix();
         void calculate_P_q_matrix();
         void calculate_constraint_matrix();
+        void calculate_upper_triangle_matrix(const Eigen::MatrixXd& input_matrix, Eigen::MatrixXd& upper_triangle_matrix);
         void solve_QP();
+
         
 
     private:
@@ -86,17 +94,19 @@ class MPCController : public Controller {
         int n_x;
         int n_u;
 
+        std::unique_ptr<Solver> solver;
+
         std::vector<double> A_s;
-        std::vector<Eigen::Vector3d> B_s;
-
-
+        std::vector<Eigen::RowVector3d> B_s;
+        
         Eigen::MatrixXd Q;
         Eigen::MatrixXd R;
         Eigen::MatrixXd P;
+        Eigen::MatrixXd P_triangle;
         Eigen::MatrixXd q;
         Eigen::MatrixXd constraint_A;
-        Eigen::MatrixXd UL;
-        Eigen::MatrixXd LL;
+        Eigen::VectorXd UL;
+        Eigen::VectorXd LL;
         Eigen::VectorXd input_reference_micro;
         Eigen::VectorXd input_reference_macro;
         Eigen::VectorXd input_reference_atm;
@@ -104,6 +114,9 @@ class MPCController : public Controller {
         std::unique_ptr<Valve> valve_micro;
         std::unique_ptr<Valve> valve_macro;
         std::unique_ptr<Valve> valve_atm;
+
+        OSQPInt n;
+        OSQPInt m;
 
 
 

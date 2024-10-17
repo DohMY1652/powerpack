@@ -10,6 +10,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
     sensor_idx(sensor_idx),
     pwm_idx(pwm_idx) {
         data.resize(pwm_idx.size());
+        // controller = std::make_unique<MPCController>(is_positive, gains);
         controller = new MPCController(is_positive, gains);
         // std::cout << "Control module generated" << std::endl;
         // std::cout << "Channel type : ";
@@ -24,7 +25,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
 ControlModule::~ControlModule() {
 }
 
-void ControlModule::get_channel_info() {
+void ControlModule::get_channel_info() const {
     std::cout << "========================" << std::endl;
     if (is_positive) {
         std::cout << "channel type : positive" << std::endl;    
@@ -40,7 +41,7 @@ void ControlModule::get_channel_info() {
     std::cout << std::endl;
 }
 
-bool ControlModule::get_channel_type() {
+bool ControlModule::get_channel_type() const {
     return is_positive;
 }
 
@@ -48,17 +49,19 @@ void ControlModule::calculate_control_signal(double now, double P_micro, double 
     controller->set_now_state(now, P_micro, P_macro);
     controller->set_now_target_trajectory(target);
     controller->calculate_control();
+    std::cout << "calculate_control" << std::endl;
     std::vector<double> control_signal =  controller->get_control_signal();
     data[0] = control_signal[0];
     data[1] = control_signal[1];
     data[2] = control_signal[2];
+    std::cout << "Data 1 : " << data[0] << std::endl;
 }
 
-std::vector<double> ControlModule::get_control_signal() {
+std::vector<double> ControlModule::get_control_signal() const {
     return data;
 }
 
 
-std::string ControlModule::get_controller_type() {
+std::string ControlModule::get_controller_type() const {
     return controller->get_controller_type();
 }
