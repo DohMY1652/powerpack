@@ -80,6 +80,7 @@ class MPCController : public Controller {
         void calculate_upper_triangle_matrix(const Eigen::MatrixXd& input_matrix, Eigen::MatrixXd& upper_triangle_matrix);
         void solve_QP();
 
+
         
 
     private:

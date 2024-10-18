@@ -28,11 +28,11 @@ class ControlModule {
         PWM& pwm;
         ReferenceGoverner& referencegoverner;
         // std::unique_ptr<Controller> controller;
-        Controller* controller;
+        MPCController* controller;
         bool is_positive;
         int sensor_idx;
         std::vector<int> pwm_idx;
-        std::vector<double> data;
+        std::vector<double> control;
 
 };
 

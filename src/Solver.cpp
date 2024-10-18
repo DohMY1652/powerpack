@@ -1,5 +1,5 @@
 #include "Solver.h"
-#include <cstdlib>
+#include <stdexcept>
 
 Solver::Solver(const Eigen::MatrixXd& P_mat, 
                const Eigen::VectorXd& q_vec, 
@@ -8,10 +8,13 @@ Solver::Solver(const Eigen::MatrixXd& P_mat,
                const Eigen::VectorXd& u_vec, 
                OSQPInt n, 
                OSQPInt m) 
+    : n(n), m(m), result(n)
 {
-    P = (OSQPCscMatrix*)malloc(sizeof(OSQPCscMatrix));
-    A = (OSQPCscMatrix*)malloc(sizeof(OSQPCscMatrix));
-    settings = (OSQPSettings*)malloc(sizeof(OSQPSettings));
+    // Use new instead of malloc
+    P = new OSQPCscMatrix();
+    A = new OSQPCscMatrix();
+    settings = new OSQPSettings();
+    solver = nullptr; // 초기화
 
     // Populate P and A matrices
     set_data(P, P_mat);
@@ -31,18 +34,18 @@ Solver::Solver(const Eigen::MatrixXd& P_mat,
 
 Solver::~Solver() {
     osqp_cleanup(solver);
-    free(A);
-    free(P);
-    free(settings);
+    delete A; // Use delete instead of free
+    delete P;
+    delete settings;
 }
 
 void Solver::set_data(OSQPCscMatrix* mat, const Eigen::MatrixXd& eigenMat) {
-   OSQPInt nnz = eigenMat.nonZeros();
+    OSQPInt nnz = eigenMat.nonZeros();
     mat->n = eigenMat.cols();
     mat->m = eigenMat.rows();
-    mat->p = (OSQPInt*)malloc((mat->n + 1) * sizeof(OSQPInt));
-    mat->i = (OSQPInt*)malloc(nnz * sizeof(OSQPInt));
-    mat->x = (OSQPFloat*)malloc(nnz * sizeof(OSQPFloat));
+    mat->p = new OSQPInt[mat->n + 1]; // Use new instead of malloc
+    mat->i = new OSQPInt[nnz]; // Use new instead of malloc
+    mat->x = new OSQPFloat[nnz]; // Use new instead of malloc
 
     // Eigen::MatrixXd를 Eigen::SparseMatrix로 변환
     Eigen::SparseMatrix<double> sparseMat = eigenMat.sparseView();
@@ -61,5 +64,16 @@ void Solver::set_data(OSQPCscMatrix* mat, const Eigen::MatrixXd& eigenMat) {
 }
 
 OSQPInt Solver::solve() {
-    return osqp_solve(solver);
+    OSQPInt exitflag = osqp_solve(solver);
+    if (exitflag == 0) {
+        // 결과를 벡터에 저장
+        for (OSQPInt i = 0; i < n; ++i) {
+            result[i] = static_cast<double>(solver->solution->x[i]);
+        }
+    }
+    return exitflag; // 상태 코드 반환
+}
+
+std::vector<double> Solver::get_result() const {
+    return result; // 결과 반환
 }

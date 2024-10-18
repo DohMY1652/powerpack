@@ -9,7 +9,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
     is_positive(is_positive),
     sensor_idx(sensor_idx),
     pwm_idx(pwm_idx) {
-        data.resize(pwm_idx.size());
+        control.resize(pwm_idx.size());
         // controller = std::make_unique<MPCController>(is_positive, gains);
         controller = new MPCController(is_positive, gains);
         // std::cout << "Control module generated" << std::endl;
@@ -49,16 +49,11 @@ void ControlModule::calculate_control_signal(double now, double P_micro, double 
     controller->set_now_state(now, P_micro, P_macro);
     controller->set_now_target_trajectory(target);
     controller->calculate_control();
-    std::cout << "calculate_control" << std::endl;
-    std::vector<double> control_signal =  controller->get_control_signal();
-    data[0] = control_signal[0];
-    data[1] = control_signal[1];
-    data[2] = control_signal[2];
-    std::cout << "Data 1 : " << data[0] << std::endl;
+    control =  controller->get_control_signal();
 }
 
 std::vector<double> ControlModule::get_control_signal() const {
-    return data;
+    return control;
 }
 
 

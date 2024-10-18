@@ -107,7 +107,7 @@ MPCController::MPCController(bool is_poisitive, std::vector<double> gains) :
 
 
     NP = int(gains[0]);
-    Ts = gains[1];   
+    Ts = gains[1];  
     Q_value = gains[2];
     R_value = gains[3];
     kp_micro = gains[4];
@@ -296,13 +296,31 @@ void MPCController::solve_QP() {
     try {
         //  auto solver = std::make_unique<Solver>(P, q, A, l, u, n, m);
 
+        // Solver solver(P_triangle, q_vector, constraint_A, LL, UL, n, m);
+        // OSQPInt exitflag = solver.solve();
+        
+        // if (exitflag == 0) {
+        //     std::cout << "Problem solved successfully!" << std::endl;
+        // } else {
+        //     std::cout << "Problem solving failed with exit flag: " << exitflag << std::endl;
+        // }
+
         Solver solver(P_triangle, q_vector, constraint_A, LL, UL, n, m);
         OSQPInt exitflag = solver.solve();
-        
+
         if (exitflag == 0) {
-            std::cout << "Problem solved successfully!" << std::endl;
+            std::vector<double> tmp = solver.get_result();
+            control[0] = tmp[0]+input_reference_micro(1);
+            control[1] = tmp[1]+input_reference_macro(1);
+            control[2] = tmp[2]+input_reference_atm(1);
+
+            std::cout << "Result: ";
+            for (const auto& val : control) {
+                std::cout << val << " ";
+            }
+            std::cout << std::endl;
         } else {
-            std::cout << "Problem solving failed with exit flag: " << exitflag << std::endl;
+            std::cerr << "Optimization failed with exitflag: " << exitflag << std::endl;
         }
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
