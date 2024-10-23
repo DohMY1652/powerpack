@@ -20,7 +20,7 @@ class Controller {
        
 
         std::string get_controller_type();
-        std::vector<double> get_control_signal();
+        std::vector<unsigned int> get_control_signal();
 
         virtual void calculate_control() =0;
         virtual void print_controller_info() =0;
@@ -33,7 +33,7 @@ class Controller {
         const double P_atm = 101.325;
 
         std::vector<double> target_trajectory;
-        std::vector<double> control;
+        std::vector<unsigned int> control;
         std::string controller_type;
 };
 
@@ -73,15 +73,14 @@ class MPCController : public Controller {
 
         void set_now_target_trajectory(double target) override;
 
-        void calculate_input_reference();
+        double input_mapping(double input, double P_in, double P_out);
+
         void calculate_A_B_matrix();
+        void calculate_input_reference();
         void calculate_P_q_matrix();
         void calculate_constraint_matrix();
         void calculate_upper_triangle_matrix(const Eigen::MatrixXd& input_matrix, Eigen::MatrixXd& upper_triangle_matrix);
         void solve_QP();
-
-
-        
 
     private:
         bool is_positive;
@@ -118,10 +117,6 @@ class MPCController : public Controller {
 
         OSQPInt n;
         OSQPInt m;
-
-
-
-
 };
 
 

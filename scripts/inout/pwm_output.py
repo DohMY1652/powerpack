@@ -42,7 +42,7 @@ def callback(data):
         rospy.loginfo("Length of received data: %s", len(uint16_data))
         i = 0
         for pwm in uint16_data:
-            if i <= 15:
+            if i < 16:
                 set_value(pwm_module_1,i, pwm)
             else :
                 set_value(pwm_module_2,i-16, pwm)

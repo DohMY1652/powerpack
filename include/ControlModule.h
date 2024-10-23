@@ -20,7 +20,7 @@ class ControlModule {
         void get_channel_info() const;
         bool get_channel_type() const;
         void calculate_control_signal(double now, double P_micro, double P_macro, double target);
-        std::vector<double> get_control_signal() const;
+        std::vector<unsigned int> get_control_signal() const;
         std::string get_controller_type() const;
 
     private:
@@ -32,7 +32,7 @@ class ControlModule {
         bool is_positive;
         int sensor_idx;
         std::vector<int> pwm_idx;
-        std::vector<double> control;
+        std::vector<unsigned int> control;
 
 };
 

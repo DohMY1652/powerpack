@@ -13,9 +13,9 @@ Valve::~Valve() {
 
 void Valve::calculate_valve_dynamic(double input, double pressure_in, double pressure_out) {
 
-    std::cout << "input : " << input << std::endl;
-    std::cout << "pressure in : " << pressure_in << std::endl;
-    std::cout << "pressure out : " << pressure_out<< std::endl;
+    // std::cout << "input : " << input << std::endl;
+    // std::cout << "pressure in : " << pressure_in << std::endl;
+    // std::cout << "pressure out : " << pressure_out<< std::endl;
 
 
     double lpm2kgps = 0.0002155; //for air
@@ -69,7 +69,7 @@ void Valve::calculate_valve_dynamic(double input, double pressure_in, double pre
     round_pressure_in *= lpm2kgps;
     round_pressure_out *= lpm2kgps;
 
-    std::cout << "flow rate : " << flow_rate<< std::endl;
+    // std::cout << "flow rate : " << flow_rate<< std::endl;
 }
 
 double Valve::get_flow_rate(){

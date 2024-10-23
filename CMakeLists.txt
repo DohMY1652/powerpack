@@ -24,7 +24,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(Pos_neg_controller 
+add_executable(mpc_controller 
   src/main.cpp 
   src/Powerpack.cpp 
   src/DatabaseConfig.cpp 
@@ -37,10 +37,21 @@ add_executable(Pos_neg_controller
   src/Solver.cpp
 )
 
-target_link_libraries(Pos_neg_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})
+target_link_libraries(mpc_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})
 
 # Find OSQP library and headers
 find_package(osqp REQUIRED)
 
 # Link the OSQP shared library
-target_link_libraries(Pos_neg_controller PRIVATE osqp::osqp)
+target_link_libraries(mpc_controller PRIVATE osqp::osqp)
+
+# PosNegPIDController 노드 추가
+add_executable(pid_controller src/PosNegPIDController.cpp)
+
+target_link_libraries(pid_controller ${catkin_LIBRARIES})
+
+add_executable(ref_values_publisher src/ref_values_publisher.cpp)
+
+target_link_libraries(ref_values_publisher
+  ${catkin_LIBRARIES}
+)

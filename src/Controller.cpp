@@ -1,4 +1,6 @@
 #include <iostream>
+#include <ros/ros.h>
+
 
 #include "Controller.h"
 
@@ -16,7 +18,6 @@ void Controller::set_now_state(double _P_now, double _P_micro, double _P_macro) 
     P_now = _P_now;
     P_micro = _P_micro;
     P_macro = _P_macro;
-
 }
 
 
@@ -27,7 +28,7 @@ std::string Controller::get_controller_type() {
     return controller_type;
 }
 
-std::vector<double> Controller::get_control_signal() {
+std::vector<unsigned int> Controller::get_control_signal() {
     return control;
 }
 
@@ -53,6 +54,7 @@ PIDController::~PIDController() {
 }
 
 void PIDController::set_now_target_trajectory(double target) {
+    // ROS_INFO("set now target tarjectory");
     target_trajectory.resize(1,target);
 }
 
@@ -95,7 +97,7 @@ void PIDController::calculate_control() {
     }
 }
 
-MPCController::MPCController(bool is_poisitive, std::vector<double> gains) :
+MPCController::MPCController(bool is_positive, std::vector<double> gains) :
     is_positive(is_positive) {
     controller_type = "MPC";
     control = {0, 0, 0};
@@ -141,13 +143,15 @@ void MPCController::set_now_target_trajectory(double target) {
 
 
 void MPCController::calculate_input_reference() {
-    std::cout << "target_trajectory :" << std::endl;
-    for (size_t i = 0; i <  target_trajectory.size(); ++i) {
-        std::cout << "Element" << i << " : " <<  target_trajectory[i] << std::endl;
-    }
     Eigen::VectorXd target_trajectory_eigen = Eigen::VectorXd::Map(target_trajectory.data(), NP);
     Eigen::VectorXd tmp_vector = Eigen::VectorXd::Constant(NP, P_now);
     Eigen::VectorXd now_error = target_trajectory_eigen - tmp_vector;
+    if(is_positive) {
+        now_error *= 1;
+    }
+    else {
+        now_error *= -1;
+    }
 
     input_reference_micro = kp_micro*now_error;
     input_reference_macro = kp_macro*now_error;
@@ -166,31 +170,49 @@ void MPCController::calculate_input_reference() {
     }
 }
 
+double MPCController::input_mapping(double input, double P_in, double P_out) {
+    
+    double delP = P_in - P_out;
+    double u_min = 98.85 - 0.03191 * delP;
+    double Q_max = -407.1 + 0.1922 * delP + 4.072 * 100;
+    if (input >= Q_max) {
+        return 1000;
+    }
+    else {
+        return 10 * (input / Q_max * (100-u_min) + u_min);
+    }
+}
+
 void MPCController::calculate_A_B_matrix() {
     for (int idx = 0; idx < NP; idx++) {
         double tmp_A;
         Eigen::RowVector3d tmp_B;
-        valve_micro->calculate_valve_dynamic(input_reference_micro[idx],P_micro, P_now);
-        valve_macro->calculate_valve_dynamic(input_reference_macro[idx],P_macro, P_now);
-        valve_atm->calculate_valve_dynamic(input_reference_atm[idx],P_now, P_atm);
-
-        tmp_A = valve_micro->get_round_pressure_out() +
+        if (is_positive) {
+            valve_micro->calculate_valve_dynamic(input_mapping(input_reference_micro[idx],P_micro, P_now),P_micro, P_now);
+            valve_macro->calculate_valve_dynamic(input_mapping(input_reference_macro[idx],P_macro, P_now),P_macro, P_now);
+            valve_atm->calculate_valve_dynamic(input_mapping(input_reference_atm[idx],P_now, P_atm),P_now, P_atm);
+            tmp_A = valve_micro->get_round_pressure_out() +
+                    valve_macro->get_round_pressure_out() +
+                    -1 * valve_atm->get_round_pressure_in();
+            tmp_B << valve_micro->get_round_input(),
+                    valve_macro->get_round_input(),
+                    -1 * valve_atm->get_round_input();
+        }
+        else {
+            valve_micro->calculate_valve_dynamic(input_mapping(input_reference_micro[idx],P_now, P_micro),P_now, P_micro);
+            valve_macro->calculate_valve_dynamic(input_mapping(input_reference_macro[idx],P_now, P_macro),P_now, P_macro);
+            valve_atm->calculate_valve_dynamic(input_mapping(input_reference_atm[idx],P_atm, P_now),P_atm, P_now);
+            tmp_A = -1 * (valve_micro->get_round_pressure_out() +
                 valve_macro->get_round_pressure_out() +
-                -1 * valve_atm->get_round_pressure_in();
-        tmp_B << valve_micro->get_round_input(),
-                 valve_macro->get_round_input(),
-                 -1 * valve_atm->get_round_input();
+                -1 * valve_atm->get_round_pressure_in());
+            tmp_B << -1 * (valve_micro->get_round_input()),
+                    -1 * (valve_macro->get_round_input()),
+                    valve_atm->get_round_input();
+        }
+        
         A_s.push_back(tmp_A);
         B_s.push_back(tmp_B);
 
-    }
-    std::cout << "A_s :" << std::endl;
-    for (size_t i = 0; i <  A_s.size(); ++i) {
-        std::cout << "Element" << i << " : " <<  A_s[i] << std::endl;
-    }
-    std::cout << "B_s :" << std::endl;
-    for(const auto& tmp : B_s) {
-        std::cout << "Element" << tmp << std::endl;
     }
 }
 
@@ -206,7 +228,7 @@ void MPCController::calculate_P_q_matrix() {
                 if (B.size() == n_u) {
                     S_bar.block(row, column, n_x,n_u) = B;
                 } else {
-                    std::cerr << "Error: Size of B does not match n_u" << std::endl;
+                    ROS_INFO("Error: Size of B does not match n_u");
                 }
             } 
             else if (j < i) {
@@ -219,13 +241,11 @@ void MPCController::calculate_P_q_matrix() {
                 if (tmp_mat.size() == n_u) {
                     S_bar.block(row, column, n_x, n_u) = tmp_mat;
                 } else {
-                    std::cerr << "Error: Size of tmp_mat does not match n_u" << std::endl;
+                    ROS_INFO("Error: Size of tmp_mat does not match n_u");
                 }
             }
         }
     }
-    std::cout << "S bar : " << std::endl;    
-    std::cout << S_bar << std::endl;    
 
 
     Eigen::MatrixXd T_bar = Eigen::MatrixXd::Zero(NP, n_x);
@@ -239,20 +259,8 @@ void MPCController::calculate_P_q_matrix() {
         int column = 0;
         T_bar.block(row, column, n_x, n_x) = tmp;
     }
-
-    std::cout << "T bar : " << std::endl;    
-    std::cout << T_bar << std::endl;    
-
     P = 2*(R+(S_bar.transpose()*Q*S_bar));
-
-    std::cout << "P : " << std::endl;    
-    std::cout << P << std::endl;    
-
     q = P_now*2*T_bar.transpose()*Q*S_bar;   
-
-    std::cout << "q : " << std::endl;    
-    std::cout << q << std::endl;    
-
 }
 
 
@@ -267,20 +275,14 @@ void MPCController::calculate_constraint_matrix() {
         LL(i * 3 + 1) = 0 - input_reference_macro(i);  
         LL(i * 3 + 2) = 0 - input_reference_atm(i); 
     }
-
-    std::cout << "UL : " << std::endl;
-    std::cout << UL << std::endl;
-    std::cout << "LL : " << std::endl;
-    std::cout << LL << std::endl;
 }
 
 void MPCController::calculate_upper_triangle_matrix(const Eigen::MatrixXd& input_matrix, Eigen::MatrixXd& upper_triangle_matrix) {
-    upper_triangle_matrix = input_matrix; // 입력 행렬을 복사하여 상삼각 행렬로 사용
+    upper_triangle_matrix = input_matrix; 
     int rows = upper_triangle_matrix.rows();
     int cols = upper_triangle_matrix.cols();
 
     for (int i = 0; i < std::min(rows, cols); ++i) {
-        // 피벗 선택
         for (int j = i + 1; j < rows; ++j) {
             double factor = upper_triangle_matrix(j, i) / upper_triangle_matrix(i, i);
             upper_triangle_matrix.row(j) -= factor * upper_triangle_matrix.row(i);
@@ -294,57 +296,33 @@ void MPCController::solve_QP() {
     q_vector =q.row(0).transpose();
     calculate_upper_triangle_matrix(P, P_triangle);
     try {
-        //  auto solver = std::make_unique<Solver>(P, q, A, l, u, n, m);
-
-        // Solver solver(P_triangle, q_vector, constraint_A, LL, UL, n, m);
-        // OSQPInt exitflag = solver.solve();
-        
-        // if (exitflag == 0) {
-        //     std::cout << "Problem solved successfully!" << std::endl;
-        // } else {
-        //     std::cout << "Problem solving failed with exit flag: " << exitflag << std::endl;
-        // }
-
         Solver solver(P_triangle, q_vector, constraint_A, LL, UL, n, m);
         OSQPInt exitflag = solver.solve();
 
         if (exitflag == 0) {
             std::vector<double> tmp = solver.get_result();
-            control[0] = tmp[0]+input_reference_micro(1);
-            control[1] = tmp[1]+input_reference_macro(1);
-            control[2] = tmp[2]+input_reference_atm(1);
+            control[0] = (unsigned int)input_mapping((tmp[0]+input_reference_micro(1)), P_micro, P_now);
+            control[1] = (unsigned int)input_mapping((tmp[1]+input_reference_macro(1)), P_macro, P_now);
+            control[2] = (unsigned int)input_mapping((tmp[2]+input_reference_atm(1)), P_now, P_atm);
 
-            std::cout << "Result: ";
-            for (const auto& val : control) {
-                std::cout << val << " ";
-            }
-            std::cout << std::endl;
+            // ROS_INFO("Result: %u", control[0]);
+            // ROS_INFO("Result: %u", control[1]);
+            // ROS_INFO("Result: %u", control[2]);
         } else {
-            std::cerr << "Optimization failed with exitflag: " << exitflag << std::endl;
+            ROS_INFO("Optimization failed with exitflag: ");
         }
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
     }
 }
 
+
 void MPCController::calculate_control() {
-    std::cout << "MPC Controller calculate control" << std::endl;
     calculate_input_reference();
-    std::cout << "calculate input reference" << std::endl;
     calculate_A_B_matrix();
-    std::cout << "calculate A B matrix" << std::endl;
     calculate_P_q_matrix();
-    std::cout << "calculate P q matrix" << std::endl;
     calculate_constraint_matrix();
-    std::cout << "calculate constraint matrix" << std::endl;
     solve_QP();
-    //  static int i = 0;
-    //  control[0] = i;
-    // control[1] = i;
-    // control[2] = i++;
-    // if (i > 1000) {
-    //     i = 0;
-    // }
 
 }
 

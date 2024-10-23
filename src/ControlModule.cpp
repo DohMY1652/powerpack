@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ros/ros.h>
 
 #include "ControlModule.h"
 
@@ -10,15 +11,7 @@ ControlModule::ControlModule(Sensor& sensor, PWM& pwm, ReferenceGoverner& refere
     sensor_idx(sensor_idx),
     pwm_idx(pwm_idx) {
         control.resize(pwm_idx.size());
-        // controller = std::make_unique<MPCController>(is_positive, gains);
         controller = new MPCController(is_positive, gains);
-        // std::cout << "Control module generated" << std::endl;
-        // std::cout << "Channel type : ";
-        // if (is_positive) {
-        //     std::cout << "positive" << std::endl;
-        // } else {
-        //     std::cout << "negative" << std::endl;
-        // }
         
 }
 
@@ -49,10 +42,10 @@ void ControlModule::calculate_control_signal(double now, double P_micro, double 
     controller->set_now_state(now, P_micro, P_macro);
     controller->set_now_target_trajectory(target);
     controller->calculate_control();
-    control =  controller->get_control_signal();
+    control = controller->get_control_signal();
 }
 
-std::vector<double> ControlModule::get_control_signal() const {
+std::vector<unsigned int> ControlModule::get_control_signal() const {
     return control;
 }
 

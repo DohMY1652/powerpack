@@ -35,10 +35,9 @@ class OutputIntegrator:
 
     def merge_and_publish(self):
         if self.data_mpc is not None and self.data_rl is not None:
-            merged_data = self.data_rl + self.data_mpc  # Merge arrays by concatenation
+            merged_data = self.data_mpc[0:9] + tuple([0]*(7)) + self.data_mpc[9:18] + self.data_rl + tuple([0]*(5)) # Merge arrays by concatenation
             output_msg = UInt16MultiArray()
-            output_msg.data = merged_data + tuple([0]*(32-len(merged_data)))
-
+            output_msg.data = merged_data
 
             self.pub.publish(output_msg)
             rospy.loginfo("Published merged array: %s", output_msg.data)

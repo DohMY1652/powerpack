@@ -23,6 +23,7 @@ Solver::Solver(const Eigen::MatrixXd& P_mat,
     // Set default settings
     osqp_set_default_settings(settings);
     settings->alpha = 1.0; // Change alpha parameter
+    settings->verbose = 0;  // 로그 출력을 비활성화
 
     // Setup solver
     OSQPInt exitflag = osqp_setup(&solver, P, q_vec.data(), A, l_vec.data(), u_vec.data(), m, n, settings);

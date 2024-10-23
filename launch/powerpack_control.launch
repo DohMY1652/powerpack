@@ -5,7 +5,11 @@
     <node pkg="powerpack" type="pwm_output.py" name="pwm_output" />
     <node pkg="powerpack" type="sensor_input.py" name="sensor_input" />
     
-    <node pkg="powerpack" type="Pos_neg_controller" name="pos_neg_controller">
+    <node pkg="powerpack" type="mpc_controller" name="mpc_controller" output="screen" >
         <param name="yaml_file" value="$(find powerpack)/config/config.yaml" />
     </node>
+    <node pkg="powerpack" type="pid_controller" name="pid_controller" />
+    
+    <node pkg="powerpack" type="ref_values_publisher" name="ref_values_publisher" />
+
 </launch>

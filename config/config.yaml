@@ -1,6 +1,15 @@
+Sensor_parameters:
+  pos_offset : 1.0
+  pos_gain : 250.0
+
+  neg_offset : 1.0
+  neg_gain : -25.25
+
+  atm_offset : 101.325
+
+
 positive_channel:
   n_channel : 3
-
 
 negative_channel:
   n_channel : 3

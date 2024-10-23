@@ -16,7 +16,7 @@ void PWM::set_data(unsigned int value, int PWM_idx) {
     }
 }
 
-void PWM::update(std::vector<double> control_signal) {
+void PWM::update(std::vector<unsigned int> control_signal) {
     int idx = 0;
     for (const double& value : control_signal) {
         data[idx] = value;

@@ -10,7 +10,7 @@ public:
     ~PWM();
 
     void set_data(unsigned int value, int PWM_idx);
-    void update(std::vector<double> control_signal);
+    void update(std::vector<unsigned int> control_signal);
     void print_all_data();
     int get_n_channel();
 

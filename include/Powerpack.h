@@ -11,7 +11,7 @@
 
 class Powerpack {
     public:
-        Powerpack(int n_pos_channel, int n_neg_channel, std::vector<double> gains);
+        Powerpack(std::vector<double> sensor_parameters, int n_pos_channel, int n_neg_channel, std::vector<double> gains);
         ~Powerpack();
 
         void get_pos_powerpack_info();
@@ -25,8 +25,6 @@ class Powerpack {
         void update_sensor(std::vector<double> _data);
         void update_reference(std::vector<double> _data);
         void update_pwm();
-
-        void print_data_vector(const std::vector<double>& data_vector) const;
 
         std::vector<double> get_all_sensor_data();
         std::vector<double> get_all_reference_data();
