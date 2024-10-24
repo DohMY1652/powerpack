@@ -1,4 +1,6 @@
 Sensor_parameters:
+  frequency : 100
+
   pos_offset : 1.0
   pos_gain : 250.0
 
@@ -7,6 +9,20 @@ Sensor_parameters:
 
   atm_offset : 101.325
 
+  
+  Pressure_pos_index : 0
+  Pressure_neg_index : 1
+  Pressure_macro_index : 2
+
+
+Reference_parameters:
+  frequency : 100
+
+PWM_parameters:
+  frequency : 100
+
+  pid_pos_index : 18
+  pid_neg_index : 19
 
 positive_channel:
   n_channel : 3
@@ -16,35 +32,30 @@ negative_channel:
 
 MPC_parameters:
   NP : 5
+  n_x : 1
+  n_u : 3
   Ts : 0.01
   Q_values : 10
   R_values : 1
-  kp_micro : 3
-  kp_macro : 3
-  kp_atm : 3
-  n_x : 1
-  n_u : 3
+  ku_micro : 3
+  ku_macro : 3
+  ku_atm : 3
 
+PID_parameters:
+  n_channel : 3
 
-pos_pid_gains:
-  kp_micro : 1.0
-  ki_micro : 2.0
-  kd_micro : 3.0
-  kp_macro : 4.0
-  ki_macro : 5.0
-  kd_macro : 6.0
-  kp_atm : 7.0
-  ki_atm : 8.0
-  kd_atm : 9.0
+  pos_PID_gains:
+    kp : 1.0
+    ki : 2.0
+    kd : 3.0
 
+  neg_PID_gains:
+    kp : 1.0
+    ki : 2.0
+    kd : 3.0
 
-neg_pid_gains:
-  kp_micro : 1.0
-  ki_micro : 2.0
-  kd_micro : 3.0
-  kp_macro : 4.0
-  ki_macro : 5.0
-  kd_macro : 6.0
-  kp_atm : 7.0
-  ki_atm : 8.0
-  kd_atm : 9.0
+system_parameters :
+  sensor_print : true
+  reference_print : true
+  pwm_print : true
+  valve_operate : false

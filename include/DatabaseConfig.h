@@ -1,28 +1,41 @@
+#ifndef DATABASECONFIG_H
+#define DATABASECONFIG_H
+
 #include <iostream>
 #include <yaml-cpp/yaml.h>
 #include <vector>
+#include <memory>
 
 class DatabaseConfig {
-    public:
+public:
 
-        DatabaseConfig(const YAML::Node& config);
-        ~DatabaseConfig();
-        int get_n_pos_channel();
-        int get_n_neg_Channel();
-        std::vector<double> get_pos_pid_gains();
-        std::vector<double> get_neg_pid_gains();
-        std::vector<double> get_MPC_parameters();
-        std::vector<double> get_sensor_parameters();
-
-
-    private:
-        YAML::Node config;
-        int n_pos_channel;
-        int n_neg_channel;
-        std::vector<double> pos_pid_gains;
-        std::vector<double> neg_pid_gains;
-        std::vector<double> MPC_parameters;
-        std::vector<double> sensor_parameters;
+    DatabaseConfig(const YAML::Node& config);
+    ~DatabaseConfig();
+    int get_n_pos_channel() const;
+    int get_n_neg_channel() const;
+    int get_n_pid_channel() const;
+    std::vector<double> get_sensor_parameters() const;
+    std::vector<double> get_reference_parameters() const;
+    std::vector<double> get_PWM_parameters() const;
+    std::vector<double> get_MPC_parameters() const;
+    std::vector<double> get_pos_pid_gains() const;
+    std::vector<double> get_neg_pid_gains() const;
+    std::vector<bool> get_system_parameters() const;
 
 
+
+private:
+    YAML::Node config;
+    int n_pos_channel;
+    int n_neg_channel;
+    int n_pid_channel;
+    std::vector<double> sensor_parameters;
+    std::vector<double> reference_parameters;
+    std::vector<double> PWM_parameters;
+    std::vector<double> MPC_parameters;
+    std::vector<double> pos_pid_gains;
+    std::vector<double> neg_pid_gains;
+    std::vector<bool> system_parameters;
 };
+
+#endif // DATABASECONFIG_H

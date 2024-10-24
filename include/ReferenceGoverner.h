@@ -1,21 +1,40 @@
 #ifndef REFERENCEGOVERNER_H
 #define REFERENCEGOVERNER_H
 
+#include <iostream>
 #include <vector>
+#include <memory>
+#include <ros/ros.h>
+#include <std_msgs/Float32MultiArray.h>
+
+#include "DatabaseConfig.h"
 
 class ReferenceGoverner{
-    public:
-        ReferenceGoverner(int n_channel, int id);
-        ~ReferenceGoverner();
+public:
+    ReferenceGoverner(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databaseconfig);
+    ~ReferenceGoverner();
 
-        void update(std::vector<double> _data);
-        double get_data(int index);
-        std::vector<double> get_all_data();
+    void subscriber_callback(const std_msgs::Float32MultiArray::ConstPtr& data) {
+        std::vector<double> data_vector;
+        assert(data->data.size() == n_channel);
+        data_vector.reserve(data->data.size());
+        for (const auto& value : data->data) {
+            data_vector.push_back(std::move((double)(value)));
+        }
+        update(data_vector);
+    }
 
-    private:
-        int n_channel;
-        int id;
-        std::vector<double> data;
+    void update(const std::vector<double> _data);
+    
+    std::vector<double> get_data() const;
+
+private:
+    ros::Subscriber subscriber;
+    std::shared_ptr<DatabaseConfig> &databaseconfig;
+
+    int frequency;
+    int n_channel;
+    std::vector<double> data;
 
 };
 

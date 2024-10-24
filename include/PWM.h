@@ -2,22 +2,25 @@
 #ifndef PWM_H
 #define PWM_H
 
+#include <iostream>
 #include <vector>
+#include <memory>
+
+#include "DatabaseConfig.h"
 
 class PWM {
 public:
-    PWM(int n_channel);
+    PWM(std::shared_ptr<DatabaseConfig> &databaseconfig);
     ~PWM();
 
-    void set_data(unsigned int value, int PWM_idx);
-    void update(std::vector<unsigned int> control_signal);
-    void print_all_data();
-    int get_n_channel();
-
-    std::vector<unsigned int> get_control_signal();
-
 private:
+    std::shared_ptr<DatabaseConfig> &databaseconfig;
+
     int n_channel;
+    int frequency;
+    int pid_pos_index;
+    int pid_neg_index;
+
     std::vector<unsigned int> data;
 };
 

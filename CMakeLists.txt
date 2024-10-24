@@ -28,13 +28,15 @@ add_executable(mpc_controller
   src/main.cpp 
   src/Powerpack.cpp 
   src/DatabaseConfig.cpp 
-  src/Controller.cpp 
-  src/ControlModule.cpp 
+  # src/Controller.cpp
+  # src/ControlModule.cpp 
   src/PWM.cpp 
   src/ReferenceGoverner.cpp 
   src/Sensor.cpp 
   src/Valve.cpp
   src/Solver.cpp
+  src/Dynamics.cpp
+  src/QP.cpp
 )
 
 target_link_libraries(mpc_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})

@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <iostream>
+#include <memory>
+
+#include "DatabaseConfig.h"
 
 class Valve {
     public:

@@ -1,36 +1,48 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <osqp.h>
+#include <iostream>
 #include <vector>
+#include <memory>
+
+#include "Sensor.h"
+#include "ReferenceGoverner.h"
+#include "DatabaseConfig.h"
+#include "Dynamics.h"
+#include "QP.h"
+
 
 class Solver {
 public:
-    Solver(const Eigen::MatrixXd& P_mat, 
-           const Eigen::VectorXd& q_vec, 
-           const Eigen::MatrixXd& A_mat, 
-           const Eigen::VectorXd& l_vec, 
-           const Eigen::VectorXd& u_vec, 
-           OSQPInt n, 
-           OSQPInt m);
-
+    Solver(bool is_positive, std::shared_ptr<Sensor>& sensor, std::shared_ptr<ReferenceGoverner>& referencegoverner, std::shared_ptr<DatabaseConfig>& databaseconfig);
     ~Solver();
 
-    OSQPInt solve(); // 최적화 문제를 해결하는 메서드
-    std::vector<double> get_result() const; // 결과를 반환하는 메서드
-
 private:
-    void set_data(OSQPCscMatrix* mat, const Eigen::MatrixXd& eigenMat); // 행렬 데이터를 설정하는 메서드
+    std::shared_ptr<Sensor> &sensor;                     
+    std::shared_ptr<ReferenceGoverner> &referencegoverner; 
+    std::shared_ptr<DatabaseConfig> &databaseconfig;
 
-    OSQPCscMatrix* P; // 목적 함수 행렬
-    OSQPCscMatrix* A; // 제약 조건 행렬
-    OSQPSettings* settings; // OSQP 설정
-    OSQPSolver* solver; // OSQP 솔버 작업공간
-    std::vector<double> result; // 최적화 결과를 저장할 벡터
-    OSQPInt n; // 변수의 수
-    OSQPInt m; // 제약조건의 수
+    int NP;
+    int n_x;
+    int n_u;
+    double Ts;
+    double Q;
+    double R;
+    double ku_micro;
+    double ku_macro;
+    double ku_atm;
+
+    bool is_positive;
+    double P_now;
+    double P_micro;
+    double P_macro;
+    std::vector<double> P_ref;
+    std::vector<double> U_ref; 
+
+    std::unique_ptr<Dynamics> dynamics;
+    std::unique_ptr<QP> qp;
+
 };
+
 
 #endif // SOLVER_H
