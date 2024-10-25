@@ -1,14 +1,15 @@
 #ifndef DATABASECONFIG_H
 #define DATABASECONFIG_H
 
-#include <iostream>
+#include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
-#include <vector>
+
+#include <iostream>
 #include <memory>
+#include <vector>
 
 class DatabaseConfig {
-public:
-
+   public:
     DatabaseConfig(const YAML::Node& config);
     ~DatabaseConfig();
     int get_n_pos_channel() const;
@@ -21,10 +22,9 @@ public:
     std::vector<double> get_pos_pid_gains() const;
     std::vector<double> get_neg_pid_gains() const;
     std::vector<bool> get_system_parameters() const;
+    std::vector<double> get_channel_volume() const;
 
-
-
-private:
+   private:
     YAML::Node config;
     int n_pos_channel;
     int n_neg_channel;
@@ -35,7 +35,8 @@ private:
     std::vector<double> MPC_parameters;
     std::vector<double> pos_pid_gains;
     std::vector<double> neg_pid_gains;
+    std::vector<double> channel_volume;
     std::vector<bool> system_parameters;
 };
 
-#endif // DATABASECONFIG_H
+#endif  // DATABASECONFIG_H

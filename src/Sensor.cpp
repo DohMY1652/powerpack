@@ -1,16 +1,16 @@
+#include "Sensor.h"
+
 #include <iostream>
 #include <vector>
 
-#include "Sensor.h"
-
-Sensor::Sensor(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databaseconfig) 
-  : databaseconfig(databaseconfig),
-    n_pump_channel(2),
-    n_macro_channel(1),
-    n_pos_channel(databaseconfig->get_n_pos_channel()), 
-    n_neg_channel(databaseconfig->get_n_neg_channel()) {
-    
-
+Sensor::Sensor(ros::NodeHandle& nh,
+               std::shared_ptr<DatabaseConfig>& databaseconfig)
+    : databaseconfig(databaseconfig),
+      is_initialized(false),
+      n_pump_channel(2),
+      n_macro_channel(1),
+      n_pos_channel(databaseconfig->get_n_pos_channel()),
+      n_neg_channel(databaseconfig->get_n_neg_channel()) {
     std::vector<double> parameters = databaseconfig->get_sensor_parameters();
     frequency = parameters[0];
     pos_offset = parameters[1];
@@ -21,23 +21,35 @@ Sensor::Sensor(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databasecon
     pressure_pos_index = (int)parameters[6];
     pressure_neg_index = (int)parameters[7];
     pressure_macro_index = (int)parameters[8];
-    
-    subscriber = nh.subscribe("sen_values", frequency, &Sensor::subscriber_callback, this);
-    data.resize(n_pump_channel + n_macro_channel + n_pos_channel + n_neg_channel);
+    offset.resize(
+        n_pump_channel + n_macro_channel + n_pos_channel + n_neg_channel,
+        pos_offset);
+
+    subscriber = nh.subscribe("sen_values", frequency,
+                              &Sensor::subscriber_callback, this);
+    data.resize(n_pump_channel + n_macro_channel + n_pos_channel +
+                n_neg_channel);
 }
 
-Sensor::~Sensor() {
+Sensor::~Sensor() {}
 
+void Sensor::initialize(std::vector<double> data_vector) {
+    if (!is_initialized) {
+        offset = data_vector;
+        // double sum = 0;
+        // for (int index = 0; index < offset.size(); ++index) {
+        //     if (index != 2) {
+        //         sum += offset[index];
+        //     }
+        // }
+        // offset[2] = sum / (offset.size() - 1);
+    }
+    is_initialized = true;
 }
 
-void Sensor::update(const std::vector<double> _data) {
-  data = _data;
-}
+void Sensor::update(const std::vector<double> _data) { data = _data; }
 
-std::vector<double> Sensor::get_data() const {
-  return data;
-}
-
+std::vector<double> Sensor::get_data() const { return data; }
 
 // void Sensor::update(std::vector<double> _data) {
 //     // data = _data;
@@ -51,7 +63,7 @@ std::vector<double> Sensor::get_data() const {
 //     }
 //     for (int i = 3+n_pos_channel; i < 3+n_pos_channel+n_neg_channel; ++i) {
 //         data[i] = (_data[i]-neg_offset)*neg_gain + atm_offset;
-//     }  
+//     }
 
 // }
 
@@ -63,11 +75,9 @@ std::vector<double> Sensor::get_data() const {
 //     return data;
 // }
 
-
 // int Sensor::get_n_channel() {
 //     return n_pos_channel+n_neg_channel;
 // }
-
 
 // void Sensor::print_all_data() {
 //     std::cout << "Sensor data : ";
@@ -79,4 +89,3 @@ std::vector<double> Sensor::get_data() const {
 //     }
 //     std::cout << std::endl;
 // }
-
