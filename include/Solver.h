@@ -1,6 +1,8 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#include <osqp.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <iostream>
@@ -15,18 +17,23 @@
 #include "Units.h"
 
 class Solver {
-   public:
+public:
     Solver(bool is_positive, std::shared_ptr<Sensor>& sensor,
            std::shared_ptr<ReferenceGoverner>& referencegoverner,
-           std::shared_ptr<DatabaseConfig>& databaseconfig);
+           std::shared_ptr<DatabaseConfig>& databaseconfig,
+           std::shared_ptr<QP>& qp);
     ~Solver();
 
     bool get_type() const;
     int get_sensor_channel() const;
-    std::vector<double> get_pressures() const;
+    std::vector<double> get_pressures() const; 
+    std::vector<double> get_result() const;
+
 
     void set_sensor_channel(int _sensor_channel);
     void set_reference_channel(int _reference_channel);
+
+    void set_result();
 
     void update_pressure();
     void update_reference();
@@ -35,23 +42,33 @@ class Solver {
     double input_mapping(double input, double P_in, double P_out);
 
     void calculate_A_B_matrix();
+    void calculate_P_q_matrix();
+    void calculate_constraint_matrix();
+    void calculate_upper_triangle_matrix(
+        const Eigen::MatrixXd& input_matrix,
+        Eigen::MatrixXd& upper_triangle_matrix);
+
+    void run_QP();
 
     void solve_QP();
+
     void run();
 
-   private:
+private:
     std::shared_ptr<Sensor>& sensor;
     std::shared_ptr<ReferenceGoverner>& referencegoverner;
     std::shared_ptr<DatabaseConfig>& databaseconfig;
+    std::shared_ptr<QP>& qp;
 
     int sensor_channel;
     int reference_channel;
     int NP;
     int n_x;
     int n_u;
+
     double Ts;
-    double Q;
-    double R;
+    double Q_value;
+    double R_value;
     double pos_ku_micro;
     double pos_ku_macro;
     double pos_ku_atm;
@@ -79,7 +96,21 @@ class Solver {
     std::unique_ptr<Dynamics> valve_micro;
     std::unique_ptr<Dynamics> valve_macro;
     std::unique_ptr<Dynamics> valve_atm;
-    // std::unique_ptr<QP> qp;
+
+    Eigen::MatrixXd Q;
+    Eigen::MatrixXd R;
+    Eigen::MatrixXd P;
+    Eigen::MatrixXd P_triangle;
+    Eigen::MatrixXd q;
+    Eigen::MatrixXd constraint_A;
+    Eigen::VectorXd UL;
+    Eigen::VectorXd LL;
+
+    OSQPInt n;
+    OSQPInt m;
+
+    std::vector<double> result;
+
 };
 
 #endif  // SOLVER_H

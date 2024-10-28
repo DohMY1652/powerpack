@@ -5,16 +5,21 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <std_msgs/UInt16MultiArray.h>
 
 #include "DatabaseConfig.h"
 
 class PWM {
 public:
-    PWM(std::shared_ptr<DatabaseConfig> &databaseconfig);
+    PWM(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databaseconfig);
     ~PWM();
+
+    void update_pwm(std::vector<double> data);
 
 private:
     std::shared_ptr<DatabaseConfig> &databaseconfig;
+
+    ros::Publisher publisher;
 
     int n_channel;
     int frequency;

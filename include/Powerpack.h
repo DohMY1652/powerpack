@@ -7,10 +7,11 @@
 #include <memory>
 #include <vector>
 
-#include "ControlModule.h"
 #include "DatabaseConfig.h"
 #include "PWM.h"
 #include "ReferenceGoverner.h"
+#include "QP.h"
+#include "Solver.h"
 #include "Sensor.h"
 
 class Powerpack {
@@ -22,6 +23,8 @@ class Powerpack {
     std::vector<double> get_sensor_data() const;
     std::vector<double> get_reference_data() const;
 
+    void set_pwm();
+
     void run();
 
    private:
@@ -31,8 +34,11 @@ class Powerpack {
     std::shared_ptr<Sensor> sensor;
     std::shared_ptr<ReferenceGoverner> referencegoverner;
     std::shared_ptr<PWM> pwm;
+    std::shared_ptr<QP> qp;
 
     std::vector<std::unique_ptr<Solver>> solvers;
+
+    std::vector<double> pwm_values;
 };
 
 #endif  // POWERPACK_H

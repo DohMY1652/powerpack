@@ -40,9 +40,9 @@ MPC_parameters:
   pos_ku_micro : 1
   pos_ku_macro : 1
   pos_ku_atm : 1
-  neg_ku_micro : 1
-  neg_ku_macro : 1
-  neg_ku_atm : 1
+  neg_ku_micro : 3
+  neg_ku_macro : 3
+  neg_ku_atm : 3
   
 channel_volume : # mL (= 1e-6m^3)
   pos1 : 750
