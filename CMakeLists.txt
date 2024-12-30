@@ -22,6 +22,7 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts
 )
 
 add_executable(mpc_controller 
@@ -49,8 +50,8 @@ add_executable(pid_controller src/PosNegPIDController.cpp)
 
 target_link_libraries(pid_controller ${catkin_LIBRARIES})
 
-add_executable(ref_values_publisher src/ref_values_publisher.cpp)
+# add_executable(ref_values_publisher src/ref_values_publisher.cpp)
 
-target_link_libraries(ref_values_publisher
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(ref_values_publisher
+#   ${catkin_LIBRARIES}
+# )

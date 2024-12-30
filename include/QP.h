@@ -34,6 +34,8 @@ class QP {
     int NP;
     int n_u;
 
+    OSQPInt exitflag = 1;
+
     OSQPInt n, m;
     OSQPSolver* solver;
     OSQPCscMatrix* P;

@@ -72,10 +72,12 @@ void Solver::update_pressure() {
         P_now = sensor_values[sensor_channel];
         P_micro = sensor_values[0];
         P_macro = sensor_values[2];
+        std::cout << P_now << " "<< P_micro << " "<< P_macro << std::endl;
     } else {
         P_now = sensor_values[sensor_channel];
         P_micro = sensor_values[1];
         P_macro = sensor_values[2];
+        std::cout << P_now << " "<< P_micro << " "<< P_macro << std::endl;
     }
 }
 
@@ -119,6 +121,14 @@ void Solver::calculate_input_reference() {
     }
 
     U_ref = {input_reference_micro[0], input_reference_macro[0], input_reference_atm[0]};
+
+    // ROS_INFO("===================================");
+    // std::cout << input_reference_micro <<std::endl;
+    // ROS_INFO("----------------------------------");
+    // std::cout << input_reference_macro <<std::endl;
+    // ROS_INFO("----------------------------------");
+    // std::cout << input_reference_atm <<std::endl;
+
 }
 
 double Solver::input_mapping(double input, double P_in, double P_out) {
@@ -243,50 +253,53 @@ void Solver::calculate_upper_triangle_matrix(
     const Eigen::MatrixXd &input_matrix,
     Eigen::MatrixXd &upper_triangle_matrix) {
     upper_triangle_matrix = input_matrix;
-    // int rows = upper_triangle_matrix.rows();
-    // int cols = upper_triangle_matrix.cols();
-
-    // for (int i = 0; i < std::min(rows, cols); ++i) {
-    //     if (upper_triangle_matrix(i, i) != 0) {
-    //         for (int j = i + 1; j < rows; ++j) {
-    //             double factor = upper_triangle_matrix(j, i) / upper_triangle_matrix(i, i);
-    //             upper_triangle_matrix.row(j) -= factor * upper_triangle_matrix.row(i);
-    //         }
-    //     } else {
-    //         std::cerr << "Warning: Zero pivot encountered at row " << i << ". The matrix may be singular." << std::endl;
-    //     }
-    // }
-    // for (int i = 0; i < rows; ++i) {
-    //     for (int j = 0; j < i; ++j) {
-    //         upper_triangle_matrix(i, j) = 0; 
-    //     }
-    // }
-
 
     ////////////////////////////////////////////////////////////////
-    // 원본 행렬을 상삼각행렬로 변환할 upper_triangle_matrix 초기화
-    upper_triangle_matrix = input_matrix;
-
     int rows = upper_triangle_matrix.rows();
     int cols = upper_triangle_matrix.cols();
 
-    // 상삼각행렬로 변환
     for (int i = 0; i < std::min(rows, cols); ++i) {
-        for (int j = i + 1; j < rows; ++j) {
-            // 주대각선 요소로 나누어 아래 행을 업데이트
-            if (upper_triangle_matrix(i, i) != 0) {
+        if (upper_triangle_matrix(i, i) != 0) {
+            for (int j = i + 1; j < rows; ++j) {
                 double factor = upper_triangle_matrix(j, i) / upper_triangle_matrix(i, i);
                 upper_triangle_matrix.row(j) -= factor * upper_triangle_matrix.row(i);
             }
+        } else {
+            // std::cerr << "Warning: Zero pivot encountered at row " << i << ". The matrix may be singular." << std::endl;
         }
     }
-
-    // 대각선 아래의 요소를 0으로 설정
-    for (int i = 1; i < rows; ++i) {
+    for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < i; ++j) {
-            upper_triangle_matrix(i, j) = 0;
+            upper_triangle_matrix(i, j) = 0; 
         }
     }
+    ////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////
+    // 원본 행렬을 상삼각행렬로 변환할 upper_triangle_matrix 초기화
+    // upper_triangle_matrix = input_matrix;
+
+    // int rows = upper_triangle_matrix.rows();
+    // int cols = upper_triangle_matrix.cols();
+
+    // // 상삼각행렬로 변환
+    // for (int i = 0; i < std::min(rows, cols); ++i) {
+    //     for (int j = i + 1; j < rows; ++j) {
+    //         // 주대각선 요소로 나누어 아래 행을 업데이트
+    //         if (upper_triangle_matrix(i, i) != 0) {
+    //             double factor = upper_triangle_matrix(j, i) / upper_triangle_matrix(i, i);
+    //             upper_triangle_matrix.row(j) -= factor * upper_triangle_matrix.row(i);
+    //         }
+    //     }
+    // }
+
+    // // 대각선 아래의 요소를 0으로 설정
+    // for (int i = 1; i < rows; ++i) {
+    //     for (int j = 0; j < i; ++j) {
+    //         upper_triangle_matrix(i, j) = 0;
+    //     }
+    // }
+    ///////////////////////////////////////////////////////////
 }
 
 void Solver::set_result() {

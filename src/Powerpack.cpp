@@ -48,8 +48,8 @@ std::vector<double> Powerpack::get_reference_data() const {
 void Powerpack::set_pwm() { pwm->update_pwm(pwm_values); }
 
 void Powerpack::run() {
-    pwm_values.reserve(solvers.size()*3);
     pwm_values.resize(0);
+    pwm_values.reserve(solvers.size()*3);
     for (const auto& solver : solvers) {
         solver->run();
         std::vector<double> tmp = solver->get_result();
@@ -57,7 +57,7 @@ void Powerpack::run() {
         pwm_values.push_back(tmp[1]);
         pwm_values.push_back(tmp[2]);
     }
-     std::for_each(pwm_values.begin(), pwm_values.end(), [](double value) {
+    std::for_each(pwm_values.begin(), pwm_values.end(), [](double value) {
         std::cout << value << " "; 
     });
 

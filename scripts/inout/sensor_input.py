@@ -15,15 +15,16 @@ ADC = ADS1263.ADS1263()
 adc_values = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 def sensor_in():
     rospy.init_node('sensor_input', anonymous=True)
-    pub = rospy.Publisher('sen_values', Float32MultiArray, queue_size=10)
-    rate = rospy.Rate(500)  # 500 Hz
+    pub = rospy.Publisher('sen_values', Float32MultiArray, queue_size=1)
+    rate = rospy.Rate(100)  # 100 Hz
 
     if (ADC.ADS1263_init_ADC1('ADS1263_400SPS') == -1):
         exit()
     ADC.ADS1263_SetMode(0) # 0 is singleChannel, 1 is diffChannel
     channelList = [0, 1, 2, 3, 4, 5, 6, 7, 8]  # The channel must be less than 10
+
     while not rospy.is_shutdown():
-        os.system('clear')  
+        # os.system('clear')  
         ADC_Value = ADC.ADS1263_GetAll(channelList)    # get ADC1 value
         for i in channelList:
             if(ADC_Value[i]>>31 ==1):
@@ -35,6 +36,8 @@ def sensor_in():
             adc_values[i] = data
             
         msg = Float32MultiArray(data=adc_values)
+        # rospy.loginfo(f"Published message: {msg.data}")
+        rospy.loginfo(f"====================================") 
         pub.publish(msg)
         rate.sleep()
 

@@ -28,13 +28,13 @@ class Sensor {
             std::vector<float> raw_data = data->data;
             data_vector.push_back(static_cast<double>(raw_data[0] - offset[0]) *
                                       pos_gain +
-                                  atm_offset + 300);
+                                  atm_offset);
             data_vector.push_back(static_cast<double>(raw_data[1] - offset[1]) *
                                       neg_gain +
-                                  atm_offset - 70);
+                                  atm_offset);
             data_vector.push_back(static_cast<double>(raw_data[2] - offset[2]) *
                                       pos_gain +
-                                  atm_offset + 700);
+                                  atm_offset);
             for (int index = (n_pump_channel + n_macro_channel);
                  index < (n_pump_channel + n_macro_channel + n_pos_channel);
                  ++index) {
@@ -54,8 +54,6 @@ class Sensor {
             }
             update(data_vector);
         } else {
-            std::vector<double> data_vector;
-            data_vector.reserve(data->data.size());
             for (const auto& value : data->data) {
                 data_vector.push_back(std::move((double)(value)));
             }

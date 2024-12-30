@@ -16,10 +16,10 @@ Sensor_parameters:
 
 
 Reference_parameters:
-  frequency : 100
+  frequency : 1000
 
 PWM_parameters:
-  frequency : 100
+  frequency : 1000
 
   pid_pos_index : 18
   pid_neg_index : 19
@@ -37,20 +37,20 @@ MPC_parameters:
   Ts : 0.01
   Q_values : 10
   R_values : 1
-  pos_ku_micro : 1
-  pos_ku_macro : 1
-  pos_ku_atm : 1
+  pos_ku_micro : 0.5
+  pos_ku_macro : 0.5
+  pos_ku_atm : 2
   neg_ku_micro : 3
   neg_ku_macro : 3
-  neg_ku_atm : 3
+  neg_ku_atm : 6
   
 channel_volume : # mL (= 1e-6m^3)
-  pos1 : 750
-  pos2 : 750
-  pos3 : 750
-  neg1 : 750
-  neg2 : 750
-  neg3 : 750
+  pos1 : 100
+  pos2 : 100
+  pos3 : 100
+  neg1 : 100
+  neg2 : 100
+  neg3 : 100
 
 
 PID_parameters:

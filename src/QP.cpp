@@ -18,7 +18,9 @@ QP::QP(std::shared_ptr<DatabaseConfig>& databaseconfig)
         settings = new OSQPSettings();
         osqp_set_default_settings(settings);
         settings->alpha = 1.0;
-        settings->verbose = 0;
+        settings->verbose =0;
+
+        raw_result.resize(n_u,0);
     }
 
 QP::~QP() {
@@ -38,7 +40,12 @@ void QP::set_data(const Eigen::MatrixXd& P_mat,
                   const Eigen::VectorXd& l_vec, 
                   const Eigen::VectorXd& u_vec) 
 {
-    
+    // std::cout << "P_mat:\n" << P_mat << std::endl;
+    // std::cout << "q_vec:\n" << q_mat << std::endl;
+    // std::cout << "A_mat:\n" << A_mat << std::endl;
+    // std::cout << "l_vec:\n" << l_vec.transpose() << std::endl;
+    // std::cout << "u_vec:\n" << u_vec.transpose() << std::endl;
+
     eigenmatrix2osqpmatrix(P, P_mat);
     eigenmatrix2osqpmatrix(A, A_mat);
 
@@ -49,12 +56,14 @@ void QP::set_data(const Eigen::MatrixXd& P_mat,
 
     Eigen::VectorXd q_vec = q_mat.col(0);
 
-    OSQPInt exitflag = osqp_setup(&solver, P, q_vec.data(), A, l_vec.data(), u_vec.data(), m, n, settings);
+    exitflag = osqp_setup(&solver, P, q_vec.data(), A, l_vec.data(), u_vec.data(), m, n, settings);
 
-    
     if (exitflag != 0) {
-        throw std::runtime_error("OSQP setup failed.");
+        return;
     }
+    // if (exitflag != 0) {
+    //     throw std::runtime_error("OSQP setup failed.");
+    // }
 }
 
 
@@ -83,6 +92,12 @@ void QP::eigenmatrix2osqpmatrix(OSQPCscMatrix* mat, const Eigen::MatrixXd& eigen
 }
 
 OSQPInt QP::solve() {
+    if (exitflag != 0) {
+        raw_result[0] = 0;
+        raw_result[1] = 0;
+        raw_result[2] = 0;
+        return exitflag;
+    }
     OSQPInt exitflag = osqp_solve(solver);
 
     if (!solver || !solver->solution) {

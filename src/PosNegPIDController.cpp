@@ -55,8 +55,8 @@ public:
     }
 
     void sensorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
-        if (msg->data.size() < 10) {
-            ROS_WARN("Expected sen_values size at least 10, but got size %zu", msg->data.size());
+        if (msg->data.size() < 9) {
+            ROS_WARN("Expected sen_values size at least 9, but got size %zu", msg->data.size());
             return;
         }
 

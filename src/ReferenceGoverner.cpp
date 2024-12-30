@@ -10,13 +10,6 @@ ReferenceGoverner::ReferenceGoverner(
       frequency(databaseconfig->get_reference_parameters()[0]) {
     data.resize(n_channel, 101.325);
 
-    data[0] = 201.325;
-    data[1] = 201.325;
-    data[2] = 201.325;
-    data[3] = 51.325;
-    data[4] = 51.325;
-    data[5] = 51.325;
-
     subscriber = nh.subscribe("ref_values", frequency,
                               &ReferenceGoverner::subscriber_callback, this);
     data.resize(n_channel);
