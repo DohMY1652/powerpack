@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     while (ros::ok())
     {
         std_msgs::Float32MultiArray sen_values_msg;
-        sen_values_msg.data = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+        sen_values_msg.data = {2.0, 4.0, 3.5, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0};
 
         std_msgs::Float32MultiArray ref_values_msg;
         ref_values_msg.data = {201.325, 201.325, 201.325, 71.325, 71.325, 71.325};

@@ -62,7 +62,7 @@ def process_data():
         print("===========")
 
         # 제목 출력 (ref가 먼저 오도록 변경)
-        print(f"{'ref':10} {'sen':10} {'error':10} {'pwm':10}")
+        print(f"{'ref':10} {'sen':10} {'error':10} {'pwm':10} {'gauge pressure':10}")
 
         # /rl_pwm에서 값을 읽어와서 출력 (6번과 7번 PWM을 처리)
         if len(rl_pwm_values) == 2:
@@ -71,13 +71,13 @@ def process_data():
             pwm_value_7 = rl_pwm_values[1]  # 7번의 PWM
 
             # 6번, 7번에 대한 출력 (ref, sen, error는 임시로 0으로 설정)
-            ref_value_6 = 301.325 
-            sen_value_6 = sen_values[0] 
+            ref_value_6 = 401.325-101.325 
+            sen_value_6 = sen_values[0] -101.325 
             error_6 = ref_value_6 - sen_value_6  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
 
-            ref_value_7 = 31.325 
-            sen_value_7 = sen_values[1] 
-            error_7 = ref_value_7 - sen_value_7  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
+            ref_value_7 = 11.325 -101.325 
+            sen_value_7 = sen_values[1] -101.325 
+            error_7 = -1* (ref_value_7 - sen_value_7)  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
 
             # 6번과 7번에 대해 ref, sen, error, pwm 출력
             print(f"{ref_value_6:10.2f} {sen_value_6:10.2f} {error_6:10.2f} {pwm_value_6:10}")
