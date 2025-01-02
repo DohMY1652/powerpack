@@ -72,12 +72,10 @@ void Solver::update_pressure() {
         P_now = sensor_values[sensor_channel];
         P_micro = sensor_values[0];
         P_macro = sensor_values[2];
-        std::cout << P_now << " "<< P_micro << " "<< P_macro << std::endl;
     } else {
         P_now = sensor_values[sensor_channel];
         P_micro = sensor_values[1];
         P_macro = sensor_values[2];
-        std::cout << P_now << " "<< P_micro << " "<< P_macro << std::endl;
     }
 }
 

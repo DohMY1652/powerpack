@@ -67,7 +67,6 @@ PID_parameters:
     kd : 3.0
 
 system_parameters :
-  sensor_print : true
-  reference_print : true
   pwm_print : true
-  valve_operate : false
+  mpc_valve_operate : false
+  rl_valve_operate : false

@@ -1,54 +1,71 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-import sys
 import rospy
 from std_msgs.msg import Float32MultiArray
-from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget
-from PyQt5.QtCore import QTimer
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 
-class ROSGui(QWidget):
+class ROSGraphPlotter(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # ROS 초기화
-        rospy.init_node('gui_node', anonymous=True)
+        self.setWindowTitle('ROS Graph Plotter')
+        
+        # Matplotlib figure and axes
+        self.fig, self.axs = plt.subplots(4, 2, figsize=(10, 10))
+        self.canvas = FigureCanvas(self.fig)
+        
+        # Initialize ROS node
+        rospy.init_node('graph_plotter', anonymous=True)
 
-        # GUI 설정
-        self.label = QLabel("Waiting for messages...", self)
+        # ROS topic subscriptions
+        rospy.Subscriber('/sen_values', Float32MultiArray, self.sen_values_callback)
+        rospy.Subscriber('/ref_values', Float32MultiArray, self.ref_values_callback)
+        
+        self.sen_values = []
+        self.ref_values = []
+        
+        # Set up layout
         layout = QVBoxLayout()
-        layout.addWidget(self.label)
-        self.setLayout(layout)
+        layout.addWidget(self.canvas)
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
 
-        # Subscriber 설정
-        self.subscriber = rospy.Subscriber('sen_values', Float32MultiArray, self.callback)
+    def sen_values_callback(self, msg):
+        # Assuming sen_values contains 9 values
+        self.sen_values = msg.data
+        self.update_plot()
 
-        # Timer 설정
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_ros)
-        self.timer.start(100)  # 100ms마다 호출
+    def ref_values_callback(self, msg):
+        # Assuming ref_values contains 6 values, add 2 random values to make it 8
+        self.ref_values = msg.data + [0.0, 0.0]  # Adding two dummy values
+        self.update_plot()
 
-        self.last_data = None  # 마지막 수신된 데이터를 저장
+    def update_plot(self):
+        if len(self.sen_values) == 9 and len(self.ref_values) == 8:
+            # Plotting each graph
+            for i in range(4):
+                for j in range(2):
+                    self.axs[i, j].cla()  # Clear previous plot
+                    if j == 0:  # Plot sen_values on the left
+                        self.axs[i, j].plot(self.sen_values, label='sen_values')
+                        self.axs[i, j].set_title(f'sen_values (Graph {i*2 + j + 1})')
+                    else:  # Plot ref_values on the right
+                        self.axs[i, j].plot(self.ref_values, label='ref_values', color='r')
+                        self.axs[i, j].set_title(f'ref_values (Graph {i*2 + j + 1})')
+                    
+                    self.axs[i, j].legend()
+            
+            self.canvas.draw()
 
-    def callback(self, data):
-        # 수신한 데이터를 저장
-        self.last_data = data
+    def run(self):
+        rospy.spin()
 
-    def update_ros(self):
-        # 수신한 데이터가 있을 경우 GUI 업데이트
-        if self.last_data is not None:
-            values = ', '.join(map(str, self.last_data.data))
-            self.label.setText("Received: [{}]".format(values))
-
-def main():
-    app = QApplication(sys.argv)
-    gui = ROSGui()
-    gui.setWindowTitle("ROS Subscriber GUI")
-    gui.resize(300, 200)
-    gui.show()
-
-    # PyQt 이벤트 루프 실행
-    sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    main()
+    app = QApplication([])
+    window = ROSGraphPlotter()
+    window.show()
+    window.run()

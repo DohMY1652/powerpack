@@ -2,6 +2,10 @@
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/UInt16MultiArray.h"
 
+#include <yaml-cpp/yaml.h>
+#include "DatabaseConfig.h"
+
+
 class PosNegPIDController {
 public:
     PosNegPIDController(double kp, double ki, double kd)
@@ -29,12 +33,15 @@ private:
 
 class ControllerNode {
 public:
-    ControllerNode(ros::NodeHandle& nh, double kp1, double ki1, double kd1, double kp2, double ki2, double kd2) {
+    ControllerNode(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databaseconfig, double kp1, double ki1, double kd1, double kp2, double ki2, double kd2) {
         pid1_ = new PosNegPIDController(kp1, ki1, kd1);
         pid2_ = new PosNegPIDController(kp2, ki2, kd2);
         sub_ = nh.subscribe("sen_values", 100, &ControllerNode::sensorCallback, this);
         pub_ = nh.advertise<std_msgs::UInt16MultiArray>("rl_pwm", 100);
+        raw_pub_ = nh.advertise<std_msgs::UInt16MultiArray>("raw_rl_pwm", 100);
         last_time_ = ros::Time::now();
+        std::vector<bool> system_parameters = databaseconfig->get_system_parameters();
+        operating = system_parameters[2];
     }
 
     ~ControllerNode() {
@@ -75,16 +82,25 @@ public:
         pwm2 = input_mapping(100 - pwm2, 101.325, ((msg->data[1]-neg_offset)*neg_gain+atm_offset)) - 20;
         // UInt16MultiArray로 결과를 publish
         std_msgs::UInt16MultiArray pwm_msg;
-        pwm_msg.data.push_back(static_cast<uint16_t>(pwm1));
-        pwm_msg.data.push_back(static_cast<uint16_t>(pwm2));
-
+        std_msgs::UInt16MultiArray raw_pwm_msg;
+        raw_pwm_msg.data.push_back(static_cast<uint16_t>(pwm1));
+        raw_pwm_msg.data.push_back(static_cast<uint16_t>(pwm2));
+        if (operating) {
+            pwm_msg.data.push_back(static_cast<uint16_t>(pwm1));
+            pwm_msg.data.push_back(static_cast<uint16_t>(pwm2));
+        } else {
+            pwm_msg.data.push_back(static_cast<uint16_t>(0));
+            pwm_msg.data.push_back(static_cast<uint16_t>(0));
+        }
         pub_.publish(pwm_msg);
+        raw_pub_.publish(raw_pwm_msg);
         ROS_INFO("pwm published");
     }
 
 private:
     ros::Subscriber sub_;
     ros::Publisher pub_;
+    ros::Publisher raw_pub_;
     PosNegPIDController* pid1_;
     PosNegPIDController* pid2_;
     ros::Time last_time_;
@@ -93,18 +109,29 @@ private:
     double neg_offset = 1;
     double neg_gain = -25.25;
     double atm_offset = 101.325;
+    bool operating = false;
 };
 
 int main(int argc, char** argv) {
+    
     ros::init(argc, argv, "pid_controller_node");
     ros::NodeHandle nh;
+
+    std::string yaml_file;
+      if (!nh.getParam("yaml_file", yaml_file)) {
+          ROS_ERROR("Could not find parameter 'yaml_file'");
+          return 1;
+      }
+
+      YAML::Node config = YAML::LoadFile(yaml_file);
+      std::shared_ptr<DatabaseConfig> databaseconfig = std::make_shared<DatabaseConfig>(config);
 
     // PID 파라미터를 직접 선언
     double kp1 = 1.0, ki1 = 0.1, kd1 = 0.01;
     double kp2 = 3.0, ki2 = 0.3, kd2 = 0.03;
 
     // ControllerNode 생성
-    ControllerNode controller(nh, kp1, ki1, kd1, kp2, ki2, kd2);
+    ControllerNode controller(nh, databaseconfig, kp1, ki1, kd1, kp2, ki2, kd2);
 
     ros::spin();
     return 0;

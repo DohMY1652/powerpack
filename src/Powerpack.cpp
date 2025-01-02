@@ -57,9 +57,9 @@ void Powerpack::run() {
         pwm_values.push_back(tmp[1]);
         pwm_values.push_back(tmp[2]);
     }
-    std::for_each(pwm_values.begin(), pwm_values.end(), [](double value) {
-        std::cout << value << " "; 
-    });
+    // std::for_each(pwm_values.begin(), pwm_values.end(), [](double value) {
+    //     std::cout << value << " "; 
+    // });
 
     std::cout << std::endl;
     set_pwm();

@@ -20,7 +20,7 @@ class Sensor {
         const std_msgs::Float32MultiArray::ConstPtr& data) {
         std::vector<double> data_vector;
         data_vector.reserve(data->data.size());
-
+        data_array.data.resize(data->data.size());
         assert(data->data.size() == n_pump_channel + n_macro_channel +
                                         n_pos_channel + n_neg_channel);
 
@@ -53,16 +53,16 @@ class Sensor {
                     atm_offset);
             }
             update(data_vector);
+            for (size_t i = 0; i < data_vector.size(); ++i) {
+                data_array.data[i] = static_cast<float>(data_vector[i]);
+            }
+            publisher.publish(data_array);
         } else {
             for (const auto& value : data->data) {
                 data_vector.push_back(std::move((double)(value)));
             }
             initialize(data_vector);
         }
-        // ROS_INFO("============");
-        // for (const auto& value : data_vector) {
-        //     ROS_INFO("Sensor data : %f", value);
-        // }
     }
 
     void initialize(std::vector<double> data_vector);
@@ -72,6 +72,7 @@ class Sensor {
 
    private:
     ros::Subscriber subscriber;
+    ros::Publisher publisher;
     std::shared_ptr<DatabaseConfig>& databaseconfig;
 
     bool is_initialized;
@@ -94,6 +95,9 @@ class Sensor {
 
     std::vector<double> offset;
     std::vector<double> data;
+
+    std_msgs::Float32MultiArray data_array;
+
 };
 
 #endif  // SENSOR_H

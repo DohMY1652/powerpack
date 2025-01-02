@@ -25,10 +25,11 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/scripts
 )
 
+# Executable 생성
 add_executable(mpc_controller 
   src/main.cpp 
   src/Powerpack.cpp 
-  src/DatabaseConfig.cpp 
+  src/DatabaseConfig.cpp
   src/PWM.cpp 
   src/ReferenceGoverner.cpp 
   src/Sensor.cpp 
@@ -37,21 +38,22 @@ add_executable(mpc_controller
   src/QP.cpp
 )
 
+add_executable(pid_controller 
+  src/PosNegPIDController.cpp
+  src/DatabaseConfig.cpp
+  )
+  
+add_executable(data_publisher src/data_publisher.cpp)
+
+# YAML-CPP 및 catkin 라이브러리 연결
+find_package(YAML-CPP REQUIRED)
+
+# target_link_libraries 수정 (일관된 방식 사용)
 target_link_libraries(mpc_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})
+target_link_libraries(pid_controller PRIVATE yaml-cpp ${catkin_LIBRARIES})
+target_link_libraries(data_publisher PRIVATE ${catkin_LIBRARIES})
 
-# Find OSQP library and headers
+# OSQP 라이브러리 연결
 find_package(osqp REQUIRED)
-
-# Link the OSQP shared library
 target_link_libraries(mpc_controller PRIVATE osqp::osqp)
 
-# PosNegPIDController 노드 추가
-add_executable(pid_controller src/PosNegPIDController.cpp)
-
-target_link_libraries(pid_controller ${catkin_LIBRARIES})
-
-# add_executable(ref_values_publisher src/ref_values_publisher.cpp)
-
-# target_link_libraries(ref_values_publisher
-#   ${catkin_LIBRARIES}
-# )

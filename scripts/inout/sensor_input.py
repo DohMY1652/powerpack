@@ -15,7 +15,7 @@ ADC = ADS1263.ADS1263()
 adc_values = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 def sensor_in():
     rospy.init_node('sensor_input', anonymous=True)
-    pub = rospy.Publisher('sen_values', Float32MultiArray, queue_size=1)
+    pub = rospy.Publisher('sen_raw_values', Float32MultiArray, queue_size=1)
     rate = rospy.Rate(100)  # 100 Hz
 
     if (ADC.ADS1263_init_ADC1('ADS1263_400SPS') == -1):

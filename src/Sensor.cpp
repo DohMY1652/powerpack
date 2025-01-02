@@ -25,26 +25,18 @@ Sensor::Sensor(ros::NodeHandle& nh,
         n_pump_channel + n_macro_channel + n_pos_channel + n_neg_channel,
         pos_offset);
 
-    subscriber = nh.subscribe("sen_values", frequency,
+    subscriber = nh.subscribe("sen_raw_values", frequency,
                               &Sensor::subscriber_callback, this);
     data.resize(n_pump_channel + n_macro_channel + n_pos_channel +
                 n_neg_channel);
+
+    publisher = nh.advertise<std_msgs::Float32MultiArray>("sen_values", 100);
 }
 
 Sensor::~Sensor() {}
 
 void Sensor::initialize(std::vector<double> data_vector) {
     if (!is_initialized) {
-    //     // offset = {1,1,1,1,1,1,1,1,1};
-    //     offset = data_vector;
-    //     // double sum = 0;
-    //     // for (int index = 0; index < offset.size(); ++index) {
-    //     //     if (index != 2) {
-    //     //         sum += offset[index];
-    //     //     }
-    //     // }
-    //     // offset[2] = sum / (offset.size() - 1);
-    // }
         is_initialized = true;
     }
 }

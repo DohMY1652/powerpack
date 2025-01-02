@@ -10,7 +10,10 @@
 #include "Powerpack.h"
 // #include "DatabaseConfig.h"
 
+bool is_sensor_ready = false;
+bool is_reference_ready = false;
 bool is_initialized = false;
+
 
 int main(int argc, char* argv[]) {
     ros::init(argc, argv, "mpc_controller");
@@ -49,25 +52,24 @@ int main(int argc, char* argv[]) {
     // ros::Rate loop_rate(1); // 1 Hz
 
     while (ros::ok()) {
-        if (powerpack->get_sensor_data()[0] == 0) {
-            ROS_INFO("Still in initial state, waiting for sensor updates...");
-            
-        } else {
-            if (is_initialized) {
-            // std::vector<double> data = powerpack->get_reference_data();
-            // ROS_INFO("==============");
-            // for (const auto& tmp : data) {
-            //     ROS_INFO("%f", tmp);
-            // }
+        if (is_initialized) {
             powerpack->run();
+        } else {
+            if (powerpack->get_sensor_data()[0] == 0) {
+                ROS_INFO("Sensor not ready");
             }
             else {
-                // ROS_INFO("Sleep 10 seconds");
-                // ros::Duration(10.0).sleep();
+                is_sensor_ready = true;
+            }
+            if (powerpack->get_reference_data()[0] == 101.325) {
+                ROS_INFO("Reference not ready");
+            }
+            else {
+                is_reference_ready = true;
+            }
+            if (is_sensor_ready && is_reference_ready) {
                 is_initialized = true;
             }
-
-
         }
         ros::spinOnce();
         loop_rate.sleep();

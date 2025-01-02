@@ -20,11 +20,14 @@ private:
     std::shared_ptr<DatabaseConfig> &databaseconfig;
 
     ros::Publisher publisher;
+    ros::Publisher raw_publisher;
 
     int n_channel;
     int frequency;
     int pid_pos_index;
     int pid_neg_index;
+    bool printing;
+    bool operating;
 
     std::vector<unsigned int> data;
 };
