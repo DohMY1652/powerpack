@@ -16,11 +16,8 @@ DatabaseConfig::DatabaseConfig(const YAML::Node& config) : config(config) {
     for (const auto& data : config["MPC_parameters"]) {
         MPC_parameters.push_back(data.second.as<double>());
     }
-    for (const auto& data : config["PID_parameters"]["pos_PID_gains"]) {
-        pos_pid_gains.push_back(data.second.as<double>());
-    }
-    for (const auto& data : config["PID_parameters"]["neg_PID_gains"]) {
-        neg_pid_gains.push_back(data.second.as<double>());
+    for (const auto& data : config["PID_parameters"]) {
+        pid_gains.push_back(data.second.as<double>());
     }
     for (const auto& data : config["channel_volume"]) {
         channel_volume.push_back(data.second.as<double>());
@@ -53,12 +50,8 @@ std::vector<double> DatabaseConfig::get_MPC_parameters() const {
     return MPC_parameters;
 }
 
-std::vector<double> DatabaseConfig::get_pos_pid_gains() const {
-    return pos_pid_gains;
-}
-
-std::vector<double> DatabaseConfig::get_neg_pid_gains() const {
-    return neg_pid_gains;
+std::vector<double> DatabaseConfig::get_pid_gains() const {
+    return pid_gains;
 }
 
 std::vector<double> DatabaseConfig::get_channel_volume() const {

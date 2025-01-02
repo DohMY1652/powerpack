@@ -19,8 +19,7 @@ class DatabaseConfig {
     std::vector<double> get_reference_parameters() const;
     std::vector<double> get_PWM_parameters() const;
     std::vector<double> get_MPC_parameters() const;
-    std::vector<double> get_pos_pid_gains() const;
-    std::vector<double> get_neg_pid_gains() const;
+    std::vector<double> get_pid_gains() const;
     std::vector<bool> get_system_parameters() const;
     std::vector<double> get_channel_volume() const;
 
@@ -33,8 +32,7 @@ class DatabaseConfig {
     std::vector<double> reference_parameters;
     std::vector<double> PWM_parameters;
     std::vector<double> MPC_parameters;
-    std::vector<double> pos_pid_gains;
-    std::vector<double> neg_pid_gains;
+    std::vector<double> pid_gains;
     std::vector<double> channel_volume;
     std::vector<bool> system_parameters;
 };

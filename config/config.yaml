@@ -55,16 +55,14 @@ channel_volume : # mL (= 1e-6m^3)
 
 PID_parameters:
   n_channel : 3
+  
+  kp : 1.0
+  ki : 2.0
+  kd : 3.0
 
-  pos_PID_gains:
-    kp : 1.0
-    ki : 2.0
-    kd : 3.0
-
-  neg_PID_gains:
-    kp : 1.0
-    ki : 2.0
-    kd : 3.0
+  kp : 1.0
+  ki : 2.0
+  kd : 3.0
 
 system_parameters :
   pwm_print : true
