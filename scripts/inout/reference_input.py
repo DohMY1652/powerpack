@@ -7,7 +7,7 @@ from std_msgs.msg import Float32MultiArray
 def serial_node():
     # ROS 노드 초기화
     rospy.init_node('serial_to_ros', anonymous=True)
-    pub = rospy.Publisher('/ref_values', Float32MultiArray, queue_size=10)
+    pub = rospy.Publisher('/mpc_ref_values', Float32MultiArray, queue_size=10)
 
     # 시리얼 포트 설정 (포트 이름과 속도 확인 필요)
     port = '/dev/ttyACM0'  # 아두이노가 연결된 포트

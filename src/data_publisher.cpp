@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 
     ros::Publisher sen_values_pub = nh.advertise<std_msgs::Float32MultiArray>("/sen_raw_values", 10);
 
-    ros::Publisher ref_values_pub = nh.advertise<std_msgs::Float32MultiArray>("/ref_values", 10);
+    ros::Publisher ref_values_pub = nh.advertise<std_msgs::Float32MultiArray>("/mpc_ref_values", 10);
 
     ros::Publisher rl_values_pub = nh.advertise<std_msgs::UInt16MultiArray>("/rl_pwm", 10);
 

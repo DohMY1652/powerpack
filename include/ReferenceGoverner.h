@@ -29,6 +29,7 @@ class ReferenceGoverner {
         // for (const auto& value : data_vector) {
         //     ROS_INFO("Reference data : %f", value);
         // }
+       
     }
 
     void update(const std::vector<double> _data);
@@ -37,6 +38,7 @@ class ReferenceGoverner {
 
    private:
     ros::Subscriber subscriber;
+
     std::shared_ptr<DatabaseConfig>& databaseconfig;
 
     int frequency;

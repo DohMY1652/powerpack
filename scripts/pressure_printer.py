@@ -13,6 +13,10 @@ def ref_values_callback(msg):
     ref_values = list(msg.data)  # 리스트로 변환하여 저장
     process_data()
 
+def rl_ref_values_callback(msg):
+    global rl_ref_values
+    rl_ref_values = list(msg.data)  # 리스트로 변환하여 저장
+
 def mpc_pwm_values_callback(msg):
     global mpc_pwm_values
     mpc_pwm_values = list(msg.data)  # 리스트로 변환하여 저장
@@ -23,10 +27,11 @@ def rl_pwm_values_callback(msg):
     rl_pwm_values = list(msg.data)  # 리스트로 변환하여 저장
     process_data()
 
+
 def process_data():
     if len(sen_values) >= 9 and len(ref_values) == 6:
         # 임의의 값 2개를 ref_values에 추가
-        ref_values.extend([1.0, 2.0])  # 임의의 값 (예: 1.0, 2.0)
+        ref_values.extend([rl_ref_values[0], rl_ref_values[1]])
 
         # 원하는 쌍의 인덱스 리스트 (예: [1, 2, 3])
         selected_pairs = [0, 1, 2, 3, 4, 5]
@@ -71,11 +76,11 @@ def process_data():
             pwm_value_7 = rl_pwm_values[1]  # 7번의 PWM
 
             # 6번, 7번에 대한 출력 (ref, sen, error는 임시로 0으로 설정)
-            ref_value_6 = 401.325-101.325 
+            ref_value_6 = ref_values[6]-101.325 
             sen_value_6 = sen_values[0] -101.325 
             error_6 = ref_value_6 - sen_value_6  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
 
-            ref_value_7 = 11.325 -101.325 
+            ref_value_7 = ref_values[7] -101.325 
             sen_value_7 = sen_values[1] -101.325 
             error_7 = -1* (ref_value_7 - sen_value_7)  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
 
@@ -89,16 +94,17 @@ def process_data():
 
 if __name__ == '__main__':
     rospy.init_node('sensor_ref_pair_printer', anonymous=True)
-
     # 변수 초기화
     sen_values = []
     ref_values = []
     mpc_pwm_values = []
     rl_pwm_values = []
+    rl_ref_values = []
 
     # 토픽 구독
     rospy.Subscriber('/sen_values', Float32MultiArray, sen_values_callback)
-    rospy.Subscriber('/ref_values', Float32MultiArray, ref_values_callback)
+    rospy.Subscriber('/mpc_ref_values', Float32MultiArray, ref_values_callback)
+    rospy.Subscriber('/rl_ref_values', Float32MultiArray, rl_ref_values_callback)
     rospy.Subscriber('/raw_mpc_pwm', UInt16MultiArray, mpc_pwm_values_callback)
     rospy.Subscriber('/raw_rl_pwm', UInt16MultiArray, rl_pwm_values_callback)
 
