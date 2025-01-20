@@ -61,11 +61,11 @@ class Sensor {
             for (const auto& value : data->data) {
                 data_vector.push_back(std::move((double)(value)));
             }
-            initialize(data_vector);
+            initialize(data_vector, pressure_macro_index);
         }
     }
 
-    void initialize(std::vector<double> data_vector);
+    void initialize(std::vector<double> data_vector, int pressure_macro_index);
     void update(const std::vector<double> _data);
 
     std::vector<double> get_data() const;

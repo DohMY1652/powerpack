@@ -16,6 +16,9 @@ def serial_node():
 
     rospy.loginfo("Serial port initialized. Waiting for data...")
 
+    # 발행 주기 설정 (1kHz)
+    rate = rospy.Rate(1000)
+
     while not rospy.is_shutdown():
         if ser.in_waiting > 0:
             try:
@@ -28,6 +31,9 @@ def serial_node():
                     rospy.loginfo(f"Published: {values}")
             except ValueError as e:
                 rospy.logwarn(f"Failed to parse data: {e}")
+
+        # 1kHz 주기로 루프 실행
+        rate.sleep()
 
 if __name__ == '__main__':
     try:

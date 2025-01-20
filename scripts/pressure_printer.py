@@ -1,105 +1,100 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from std_msgs.msg import Float32MultiArray, UInt16MultiArray
+import sys
+
+# 전역 변수 초기화
+sen_values = []
+ref_values = []
+mpc_pwm_values = []
+rl_pwm_values = []
+rl_ref_values = []
+
+# ANSI 코드로 화면 지우기 및 커서 이동
+CLEAR_SCREEN = "\033[2J"
+MOVE_CURSOR_TO_TOP = "\033[H"
 
 # 콜백 함수 정의
 def sen_values_callback(msg):
     global sen_values
-    sen_values = list(msg.data)  # 리스트로 변환하여 저장
-    process_data()
+    sen_values = list(msg.data)
 
 def ref_values_callback(msg):
     global ref_values
-    ref_values = list(msg.data)  # 리스트로 변환하여 저장
-    process_data()
+    ref_values = list(msg.data)
 
 def rl_ref_values_callback(msg):
     global rl_ref_values
-    rl_ref_values = list(msg.data)  # 리스트로 변환하여 저장
+    rl_ref_values = list(msg.data)
 
 def mpc_pwm_values_callback(msg):
     global mpc_pwm_values
-    mpc_pwm_values = list(msg.data)  # 리스트로 변환하여 저장
-    process_data()
+    mpc_pwm_values = list(msg.data)
 
 def rl_pwm_values_callback(msg):
     global rl_pwm_values
-    rl_pwm_values = list(msg.data)  # 리스트로 변환하여 저장
-    process_data()
+    rl_pwm_values = list(msg.data)
 
-
+# 데이터 처리 및 출력 함수
 def process_data():
-    if len(sen_values) >= 9 and len(ref_values) == 6:
-        # 임의의 값 2개를 ref_values에 추가
-        ref_values.extend([rl_ref_values[0], rl_ref_values[1]])
+    if len(sen_values) >= 9 and len(ref_values) >= 6:
+        ref_values_extended = rl_ref_values[:2] + ref_values[:6]
+        selected_pairs = [2, 3, 4, 5, 6, 7]
 
-        # 원하는 쌍의 인덱스 리스트 (예: [1, 2, 3])
-        selected_pairs = [0, 1, 2, 3, 4, 5]
+        output = MOVE_CURSOR_TO_TOP  # 커서를 화면 상단으로 이동
 
-        # 구분선 출력
-        print("-----------")
-        
-        # 제목 출력 (ref가 먼저 오도록 변경)
-        print(f"{'ref':10} {'sen':10} {'error':10} {'micro':10} {'macro':10} {'atm':10}")
+        # 첫 번째 테이블 출력
+        output += "-----------\n"
+        output += f"{'ref':10} {'sen':10} {'error':10} {'micro':10} {'macro':10} {'atm':10}\n"
 
-        # ref_values, sen_values, error (차이) 출력
         for i in selected_pairs:
-            if i < len(sen_values) and i < len(ref_values):
-                ref_value = ref_values[i]
-                sen_value = sen_values[i]
-                error = ref_value - sen_value  # 차이 계산
+            ref_value = ref_values_extended[i] if i < len(ref_values_extended) else 0
+            sen_value = sen_values[i+1] if i+1 < len(sen_values) else 0
+            error = ref_value - sen_value
 
-                # pwm_values 3개씩 짤라서 출력
-                if len(mpc_pwm_values) >= (i + 1) * 3:  # i번째 쌍에 대해 pwm_values가 충분히 있는지 확인
-                    micro = mpc_pwm_values[i * 3]     # 첫 번째 값
-                    macro = mpc_pwm_values[i * 3 + 1] # 두 번째 값
-                    atm = mpc_pwm_values[i * 3 + 2]   # 세 번째 값
-                else:
-                    micro = macro = atm = 0  # pwm_values가 부족한 경우 0으로 채우기
+            micro, macro, atm = (0, 0, 0)
+            if len(mpc_pwm_values) >= ((i - 2) + 1) * 3:
+                micro = mpc_pwm_values[(i - 2) * 3]
+                macro = mpc_pwm_values[(i - 2) * 3 + 1]
+                atm = mpc_pwm_values[(i - 2) * 3 + 2]
 
-                # 각 값의 너비를 일정하게 맞추어 정렬하여 출력
-                print(f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f} {micro:10} {macro:10} {atm:10}")
+            output += f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f} {micro:10} {macro:10} {atm:10}\n"
 
-        # 구분선 출력
-        print("-----------")
-        
-        # 6, 7 인덱스에 대한 구분선
-        print("===========")
+        # 두 번째 테이블 출력
+        output += "===========\n"
+        output += f"{'ref':10} {'sen':10} {'error':10} {'pwm':10} {'gauge pressure':10}\n"
 
-        # 제목 출력 (ref가 먼저 오도록 변경)
-        print(f"{'ref':10} {'sen':10} {'error':10} {'pwm':10} {'gauge pressure':10}")
-
-        # /rl_pwm에서 값을 읽어와서 출력 (6번과 7번 PWM을 처리)
         if len(rl_pwm_values) == 2:
-            # rl_pwm_values의 0번째 값은 6번의 PWM, 1번째 값은 7번의 PWM
-            pwm_value_6 = rl_pwm_values[0]  # 6번의 PWM
-            pwm_value_7 = rl_pwm_values[1]  # 7번의 PWM
+            pwm_value_6, pwm_value_7 = rl_pwm_values
 
-            # 6번, 7번에 대한 출력 (ref, sen, error는 임시로 0으로 설정)
-            ref_value_6 = ref_values[6]-101.325 
-            sen_value_6 = sen_values[0] -101.325 
-            error_6 = ref_value_6 - sen_value_6  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
+            ref_value_6 = ref_values_extended[0] - 101.325 if len(ref_values_extended) > 6 else 0
+            sen_value_6 = sen_values[0] - 101.325 if len(sen_values) > 0 else 0
+            error_6 = ref_value_6 - sen_value_6
 
-            ref_value_7 = ref_values[7] -101.325 
-            sen_value_7 = sen_values[1] -101.325 
-            error_7 = -1* (ref_value_7 - sen_value_7)  # 차이 계산 (이 부분은 실제 값에 맞게 수정 필요)
+            ref_value_7 = ref_values_extended[1] - 101.325 if len(ref_values_extended) > 7 else 0
+            sen_value_7 = sen_values[1] - 101.325 if len(sen_values) > 1 else 0
+            error_7 = -1 * (ref_value_7 - sen_value_7)
 
-            # 6번과 7번에 대해 ref, sen, error, pwm 출력
-            print(f"{ref_value_6:10.2f} {sen_value_6:10.2f} {error_6:10.2f} {pwm_value_6:10}")
-            print(f"{ref_value_7:10.2f} {sen_value_7:10.2f} {error_7:10.2f} {pwm_value_7:10}")
+            output += f"{ref_value_6:10.2f} {sen_value_6:10.2f} {error_6:10.2f} {pwm_value_6:10}\n"
+            output += f"{ref_value_7:10.2f} {sen_value_7:10.2f} {error_7:10.2f} {pwm_value_7:10}\n"
 
-        # 구분선 출력
-        print("-----------")
+        # 두 번째 테이블 출력
+        output += "===========\n"
 
+        sen_value_macro = sen_values[2]
+        
+        output += f"{'Macro pressure':10}\n"
+        output += f"{sen_value_macro:10.2f}\n"
 
+        output += "-----------\n"
+
+        # 화면에 출력
+        sys.stdout.write(CLEAR_SCREEN + output)
+        sys.stdout.flush()
+
+# 메인 함수
 if __name__ == '__main__':
     rospy.init_node('sensor_ref_pair_printer', anonymous=True)
-    # 변수 초기화
-    sen_values = []
-    ref_values = []
-    mpc_pwm_values = []
-    rl_pwm_values = []
-    rl_ref_values = []
 
     # 토픽 구독
     rospy.Subscriber('/sen_values', Float32MultiArray, sen_values_callback)
@@ -108,4 +103,7 @@ if __name__ == '__main__':
     rospy.Subscriber('/raw_mpc_pwm', UInt16MultiArray, mpc_pwm_values_callback)
     rospy.Subscriber('/raw_rl_pwm', UInt16MultiArray, rl_pwm_values_callback)
 
-    rospy.spin()  # ROS가 종료되지 않도록 대기
+    rate = rospy.Rate(100)
+    while not rospy.is_shutdown():
+        process_data()
+        rate.sleep()

@@ -42,14 +42,14 @@ int main(int argc, char* argv[]) {
       std::shared_ptr<DatabaseConfig> databaseconfig = std::make_shared<DatabaseConfig>(config);
     
     ///////////////////////////////////////////////////////////////////
+
     auto powerpack = std::make_unique<Powerpack>(nh, databaseconfig);
 
-    // Powerpack powerpack(nh, databaseconfig);
 
-    ros::Rate loop_rate(50);  // 50 Hz
+    
 
+    ros::Rate loop_rate(1000);  // 50 Hz
 
-    // ros::Rate loop_rate(1); // 1 Hz
 
     while (ros::ok()) {
         if (is_initialized) {

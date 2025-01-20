@@ -24,6 +24,8 @@ Solver::Solver(bool is_positive, std::shared_ptr<Sensor> &sensor,
     neg_ku_micro = parameters[9];
     neg_ku_macro = parameters[10];
     neg_ku_atm = parameters[11];
+    macro_min = parameters[12];
+
 
     valve_micro = std::make_unique<Dynamics>(databaseconfig);
     valve_macro = std::make_unique<Dynamics>(databaseconfig);
@@ -90,13 +92,24 @@ void Solver::calculate_input_reference() {
     if (is_positive) {
         now_error *= 1;
         input_reference_micro = pos_ku_micro * now_error;
-        input_reference_macro = pos_ku_macro * now_error;
         input_reference_atm = pos_ku_atm * now_error;
+        if (P_macro >= macro_min) {
+            input_reference_macro = pos_ku_macro * now_error;
+        }
+        else {
+            input_reference_macro = 0 * now_error;
+            ROS_WARN("Macro pressure is too low!!!");
+        }
     } else {
         now_error *= -1;
         input_reference_micro = neg_ku_micro * now_error;
-        input_reference_macro = neg_ku_macro * now_error;
         input_reference_atm = neg_ku_atm * now_error;
+        if (P_macro >= macro_min) {
+            input_reference_macro = neg_ku_macro * now_error;
+        }
+        else {
+            input_reference_macro = 0 * now_error;
+        }
     }
 
     for (int idx = 0; idx < now_error.size(); idx++) {

@@ -69,7 +69,7 @@ public:
         pos_pid_->setOutputLimits(-50.0, 50.0);
         neg_pid_->setOutputLimits(-50.0, 50.0);
 
-        publisher = nh.advertise<std_msgs::Float32MultiArray>("rl_ref_values", 100);
+        publisher = nh.advertise<std_msgs::Float32MultiArray>("rl_ref_values", 1);
         
         rl_ref  = databaseconfig->get_pid_gains();
 
@@ -100,8 +100,8 @@ public:
         double neg_pwm = -1 * neg_pid_->compute(neg_ref, ((msg->data[1] - neg_offset) * neg_gain + atm_offset), dt);
         ROS_INFO("Pos_raw_pwm : %f", pos_pwm);
         ROS_INFO("Neg_raw_pwm : %f", neg_pwm);
-        pos_pwm = 10 * (50 - pos_pwm);
-        neg_pwm = 10 * (50 - neg_pwm);
+        pos_pwm = 10 * (0.6 * 100 + 0.4 * (50 - pos_pwm));
+        neg_pwm = 10 * (0.7 * 100 + 0.3 * (50 - neg_pwm));
         ROS_INFO("Pos_pwm : %f", pos_pwm);
         ROS_INFO("Neg_pwm : %f", neg_pwm);
         std_msgs::UInt16MultiArray pwm_msg;

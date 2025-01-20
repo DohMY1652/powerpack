@@ -12,11 +12,11 @@ class OutputIntegrator:
         self.pub = rospy.Publisher('pwm_values', UInt16MultiArray, queue_size=1)
 
         # Create Subscribers
-        self.sub_mpc = rospy.Subscriber('mpc_pwm', UInt16MultiArray, self.callback_mpc)
-        self.sub_rl = rospy.Subscriber('rl_pwm', UInt16MultiArray, self.callback_rl)
+        self.sub_mpc = rospy.Subscriber('mpc_pwm', UInt16MultiArray, self.callback_mpc, queue_size=1)
+        self.sub_rl = rospy.Subscriber('rl_pwm', UInt16MultiArray, self.callback_rl, queue_size=1)
 
         # Set up a timer to publish periodically
-        self.rate = rospy.Rate(100)  # 100 Hz
+        self.rate = rospy.Rate(1000)  # 1 kHz
 
         self.data_mpc = None
         self.data_rl = None

@@ -83,6 +83,9 @@ private:
     double P_now = 0;
     double P_micro = 0;
     double P_macro = 0;
+
+    double macro_min = 0;
+
     std::vector<double> P_ref;
     std::vector<double> U_ref;
 

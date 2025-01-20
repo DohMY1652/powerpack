@@ -34,35 +34,36 @@ MPC_parameters:
   NP : 5
   n_x : 1
   n_u : 3
-  Ts : 0.01
+  Ts : 0.001
   Q_values : 10
   R_values : 1
-  pos_ku_micro : 0.5
-  pos_ku_macro : 0.5
-  pos_ku_atm : 2
-  neg_ku_micro : 3
-  neg_ku_macro : 3
-  neg_ku_atm : 6
+  pos_ku_micro : 0.2
+  pos_ku_macro : 0.05
+  pos_ku_atm : 0.4
+  neg_ku_micro : 1
+  neg_ku_macro : 0.25
+  neg_ku_atm : 2
+  macro_min : 801.325
   
 channel_volume : # mL (= 1e-6m^3)
-  pos1 : 30
-  pos2 : 30
-  pos3 : 30
-  neg1 : 30
-  neg2 : 30
-  neg3 : 30
+  pos1 : 1
+  pos2 : 1
+  pos3 : 1
+  neg1 : 1
+  neg2 : 1
+  neg3 : 1
 
 
 PID_parameters:
   n_channel : 3
 
-  pos_kp : 0.01
-  pos_ki : 0.01
-  pos_kd : 0.01
+  pos_kp : 0.1
+  pos_ki : 0.03
+  pos_kd : 0.0
 
-  neg_ki : 0.05
-  neg_kp : 0.05
-  neg_kd : 0.05
+  neg_ki : 0.2
+  neg_kp : 0.06
+  neg_kd : 0.0
 
   pos_ref : 301.325
   neg_ref : 51.325

@@ -51,7 +51,7 @@ def callback(data):
             
 def control_out():
     rospy.init_node('pwm_output', anonymous=True)
-    rospy.Subscriber('pwm_values', UInt16MultiArray, callback)
+    rospy.Subscriber('pwm_values', UInt16MultiArray, callback, queue_size=1)
     rospy.spin()
 
 if __name__ == '__main__':

@@ -35,10 +35,16 @@ Sensor::Sensor(ros::NodeHandle& nh,
 
 Sensor::~Sensor() {}
 
-void Sensor::initialize(std::vector<double> data_vector) {
-    if (!is_initialized) {
-        is_initialized = true;
+void Sensor::initialize(std::vector<double> data_vector, int pressure_macro_index) {
+    for (int index = 0; index <= data_vector.size(); ++index){ 
+        if (index != pressure_macro_index) {
+            offset[index] = data_vector[index];
+        }
+        else {
+            offset[index] = pos_offset;
+        }
     }
+    is_initialized = true;
 }
 
 void Sensor::update(const std::vector<double> _data) { data = _data; }

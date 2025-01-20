@@ -19,8 +19,8 @@ PWM::PWM(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig> &databaseconfig)
         operating = system_parameters[1];
 
 
-        publisher = nh.advertise<std_msgs::UInt16MultiArray>("mpc_pwm", 100);
-        raw_publisher = nh.advertise<std_msgs::UInt16MultiArray>("raw_mpc_pwm", 100);
+        publisher = nh.advertise<std_msgs::UInt16MultiArray>("mpc_pwm", 1);
+        raw_publisher = nh.advertise<std_msgs::UInt16MultiArray>("raw_mpc_pwm", 1);
 }
 
 PWM::~PWM() {
