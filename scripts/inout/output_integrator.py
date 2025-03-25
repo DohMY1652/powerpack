@@ -2,8 +2,13 @@
 
 import rospy
 from std_msgs.msg import UInt16MultiArray
+from collections import deque
 
 class OutputIntegrator:
+    # Set N values as class variables at the top
+    N_mpc = 1
+    N_rl = 1
+
     def __init__(self):
         # Initialize the ROS node
         rospy.init_node('output_integrator', anonymous=True)
@@ -18,24 +23,35 @@ class OutputIntegrator:
         # Set up a timer to publish periodically
         self.rate = rospy.Rate(1000)  # 1 kHz
 
-        self.data_mpc = None
-        self.data_rl = None
+        # Separate data buffers for mpc and rl
+        self.data_mpc = deque(maxlen=self.N_mpc)
+        self.data_rl = deque(maxlen=self.N_rl)
 
     def callback_mpc(self, msg):
-        self.data_mpc = msg.data
-        rospy.loginfo("Received from topic1: %s", msg.data)
+        self.data_mpc.append(msg.data)
+        rospy.loginfo("Received from mpc_pwm: %s", msg.data)
         self.merge_and_publish()
-
 
     def callback_rl(self, msg):
-        self.data_rl = msg.data
-        rospy.loginfo("Received from topic2: %s", msg.data)
+        self.data_rl.append(msg.data)
+        rospy.loginfo("Received from rl_pwm: %s", msg.data)
         self.merge_and_publish()
 
+    def apply_moving_average(self, data_deque, N):
+        # Calculate the moving average for each element across N data points
+        if len(data_deque) < N:
+            return data_deque[-1]  # Not enough data yet, return the latest one
+
+        avg_data = [sum(x[i] for x in data_deque) // len(data_deque) for i in range(len(data_deque[0]))]
+        return avg_data
 
     def merge_and_publish(self):
-        if self.data_mpc is not None and self.data_rl is not None:
-            merged_data = self.data_mpc[0:9] + tuple([0]*(7)) + self.data_mpc[9:18] + self.data_rl + tuple([0]*(5)) # Merge arrays by concatenation
+        if len(self.data_mpc) == self.N_mpc and len(self.data_rl) == self.N_rl:
+            # Apply moving average filter
+            averaged_mpc = self.apply_moving_average(self.data_mpc, self.N_mpc)
+            averaged_rl = self.apply_moving_average(self.data_rl, self.N_rl)
+
+            merged_data = averaged_mpc[0:9] + [0]*7 + averaged_mpc[9:18] + averaged_rl + [0]*5  # Merge arrays by concatenation
             output_msg = UInt16MultiArray()
             output_msg.data = merged_data
 
@@ -47,5 +63,5 @@ class OutputIntegrator:
             self.rate.sleep()
 
 if __name__ == '__main__':
-    node = OutputIntegrator()
+    node = OutputIntegrator()  # N_mpc and N_rl are set as class variables
     node.run()

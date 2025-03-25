@@ -79,51 +79,50 @@ void Solver::update_pressure() {
         P_micro = sensor_values[1];
         P_macro = sensor_values[2];
     }
+    std::cout<< "P_now" << P_now << std::endl;
+    std::cout<< "P_micro" << P_micro << std::endl;
+    std::cout<< "P_macro" << P_macro << std::endl;
 }
 
 void Solver::update_reference() {
-    P_ref.resize(NP, referencegoverner->get_data()[reference_channel]);
+    double reference_value = referencegoverner->get_data()[reference_channel];
+    P_ref.resize(NP, reference_value);
+    std::fill(P_ref.begin(), P_ref.end(), reference_value);
 }
 
 void Solver::calculate_input_reference() {
     Eigen::VectorXd target_trajectory = Eigen::VectorXd::Map(P_ref.data(), NP);
+    std::cout << "===============channel===============" << std::endl;
+    std::cout << reference_channel << std::endl;
+    std::cout << "===============target===============" << std::endl;
+    std::cout << target_trajectory << std::endl;
     Eigen::VectorXd const_P_now = Eigen::VectorXd::Constant(NP, P_now);
     Eigen::VectorXd now_error = target_trajectory - const_P_now;
+    std::cout << "===============error===============" << std::endl;
+    std::cout << now_error << std::endl;
     if (is_positive) {
         now_error *= 1;
-        input_reference_micro = pos_ku_micro * now_error;
-        input_reference_atm = pos_ku_atm * now_error;
-        if (P_macro >= macro_min) {
-            input_reference_macro = pos_ku_macro * now_error;
-        }
-        else {
-            input_reference_macro = 0 * now_error;
-            ROS_WARN("Macro pressure is too low!!!");
-        }
     } else {
         now_error *= -1;
-        input_reference_micro = neg_ku_micro * now_error;
-        input_reference_atm = neg_ku_atm * now_error;
-        if (P_macro >= macro_min) {
-            input_reference_macro = neg_ku_macro * now_error;
-        }
-        else {
-            input_reference_macro = 0 * now_error;
-        }
     }
-
-    for (int idx = 0; idx < now_error.size(); idx++) {
-        if (now_error[idx] < 0) {
-            input_reference_micro[idx] = 0;
-            input_reference_macro[idx] = 0;
-            input_reference_atm[idx] = abs(input_reference_atm[idx]);
-        } else {
-            input_reference_atm[idx] = 0;
-        }
-        assert(input_reference_micro[idx] >= 0);
-        assert(input_reference_macro[idx] >= 0);
-        assert(input_reference_atm[idx] >= 0);
+    if (P_macro >= macro_min) {
+        input_reference_macro = pos_ku_macro *now_error;
     }
+    else {
+        input_reference_macro = 0 *now_error;
+        ROS_WARN("Macro pressure is too low!!");
+    }
+    input_reference_micro = pos_ku_macro *now_error;
+    input_reference_atm = -1 * pos_ku_atm *now_error;
+    for (int i = 0; i < input_reference_micro.size(); ++i) {
+        input_reference_micro[i] = std::min(100.0, std::max(0.0, input_reference_micro[i]));
+        input_reference_macro[i] = std::min(100.0, std::max(0.0, input_reference_macro[i]));
+        input_reference_atm[i] = std::min(100.0, std::max(0.0, input_reference_atm[i]));
+    }
+    std::cout << "===============raw reference===============" << std::endl;
+    std::cout << input_reference_micro << std::endl;
+    std::cout << input_reference_macro << std::endl;
+    std::cout << input_reference_atm << std::endl;
 
     for(int i = 0; i < NP; ++i) {
         input_reference_micro[i] = input_mapping(input_reference_micro[i],P_micro, P_now);
@@ -133,23 +132,18 @@ void Solver::calculate_input_reference() {
 
     U_ref = {input_reference_micro[0], input_reference_macro[0], input_reference_atm[0]};
 
-    // ROS_INFO("===================================");
-    // std::cout << input_reference_micro <<std::endl;
-    // ROS_INFO("----------------------------------");
-    // std::cout << input_reference_macro <<std::endl;
-    // ROS_INFO("----------------------------------");
-    // std::cout << input_reference_atm <<std::endl;
-
+    std::cout << "===============reference===============" << std::endl;
+    std::cout << input_reference_micro << std::endl;
+    std::cout << input_reference_macro << std::endl;
+    std::cout << input_reference_atm << std::endl;
 }
 
 double Solver::input_mapping(double input, double P_in, double P_out) {
     double delP = abs(P_in - P_out);
-    double u_min = 98.85 - 0.03191 * delP;
+    double u_min = 95.85 - 0.03191 * delP - 10.0;
     double Q_max = -407.1 + 0.1922 * delP + 4.072 * 100;
     if (input >= Q_max) {
-        return 100;
-    } else if (input < 10) { // 10 is tuning parameters, minimum values of valve open command
-        return u_min-20; // 20 is tuning parameters. lower u_min
+        return 100.0;
     } else {
         return (input / Q_max * (100 - u_min) + u_min);
     }
@@ -182,10 +176,8 @@ void Solver::calculate_A_B_matrix() {
         } else {
             valve_micro->calculate_valve_dynamic(
                 input_reference_micro[idx], P_now, P_micro, volume);
-            // valve_macro->calculate_valve_dynamic(
-            //     input_reference_macro[idx], P_now, P_macro, volume);
             valve_macro->calculate_valve_dynamic(
-                input_reference_macro[idx], P_now, 11.325, volume);
+                input_reference_macro[idx], P_now, P_macro, volume);
             valve_atm->calculate_valve_dynamic(
                 input_reference_atm[idx], P_atm, P_now, volume);
             tmp_A = -1 * (valve_micro->get_round_pressure_out() +
@@ -243,6 +235,7 @@ void Solver::calculate_P_q_matrix() {
         T_bar.block(row, column, n_x, n_x) = tmp;
     }
     P = 2 * (R + (S_bar.transpose() * Q * S_bar));
+    P = P + epsilon * Eigen::MatrixXd::Identity(P.rows(), P.cols());
     P = (P+P.transpose())/2;
     q = P_now * 2 * T_bar.transpose() * Q * S_bar;
 }
@@ -258,6 +251,10 @@ void Solver::calculate_constraint_matrix() {
         LL(i * 3 + 1) = 0 - input_reference_macro(i);
         LL(i * 3 + 2) = 0 - input_reference_atm(i);
     }
+    std::cout << "-----------UL-----------" << std::endl;
+    std::cout << UL << std::endl;
+    std::cout << "-----------LL----------" << std::endl;
+    std::cout << LL << std::endl;
 }
 
 void Solver::calculate_upper_triangle_matrix(
@@ -284,47 +281,33 @@ void Solver::calculate_upper_triangle_matrix(
             upper_triangle_matrix(i, j) = 0; 
         }
     }
-    ////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////
-    // 원본 행렬을 상삼각행렬로 변환할 upper_triangle_matrix 초기화
-    // upper_triangle_matrix = input_matrix;
-
-    // int rows = upper_triangle_matrix.rows();
-    // int cols = upper_triangle_matrix.cols();
-
-    // // 상삼각행렬로 변환
-    // for (int i = 0; i < std::min(rows, cols); ++i) {
-    //     for (int j = i + 1; j < rows; ++j) {
-    //         // 주대각선 요소로 나누어 아래 행을 업데이트
-    //         if (upper_triangle_matrix(i, i) != 0) {
-    //             double factor = upper_triangle_matrix(j, i) / upper_triangle_matrix(i, i);
-    //             upper_triangle_matrix.row(j) -= factor * upper_triangle_matrix.row(i);
-    //         }
-    //     }
-    // }
-
-    // // 대각선 아래의 요소를 0으로 설정
-    // for (int i = 1; i < rows; ++i) {
-    //     for (int j = 0; j < i; ++j) {
-    //         upper_triangle_matrix(i, j) = 0;
-    //     }
-    // }
-    ///////////////////////////////////////////////////////////
 }
+
+
 
 void Solver::set_result() {
     std::vector<double> raw_result = qp->get_raw_result();
+    std::cout << "+++++++++++++++++++raw_result++++++++++++++++++" << std::endl;
+    for (const double& value :raw_result) {
+                std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    
     assert(U_ref.size() == raw_result.size());
     assert(result.size() == raw_result.size());
     
     for( int i = 0; i < n_u; ++i) {
-        if ((U_ref[i] + raw_result[i]) <= 100 && (U_ref[i] + raw_result[i]) >= 0) {
-            result[i] = (U_ref[i] + raw_result[i]);
+        if(raw_result[i] > UL[i] || raw_result[i] < LL[i]) {
+            raw_result[i] = 0.0;
         }
-        
+        result[i] = std::max(0.0, std::min((U_ref[i] + raw_result[i]), 100.0));
     }
-
+    std::cout << "+++++++++++++++++++final_result++++++++++++++++++" << std::endl;
+    for (const double& value :result) {
+                std::cout << value << " ";
+    }
+    std::cout << std::endl;
 }
 
 void Solver::run_QP() {

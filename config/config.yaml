@@ -34,24 +34,37 @@ MPC_parameters:
   NP : 5
   n_x : 1
   n_u : 3
-  Ts : 0.001
+  Ts : 0.01
   Q_values : 10
   R_values : 1
-  pos_ku_micro : 0.2
-  pos_ku_macro : 0.05
-  pos_ku_atm : 0.4
-  neg_ku_micro : 1
-  neg_ku_macro : 0.25
-  neg_ku_atm : 2
-  macro_min : 801.325
+  # pos_ku_micro : 10
+  # pos_ku_macro : 10
+  # pos_ku_atm : 10
+  # neg_ku_micro : 10
+  # neg_ku_macro : 10
+  # neg_ku_atm : 10
+  pos_ku_micro : 1.1
+  pos_ku_macro : 0.8
+  pos_ku_atm : 0.8
+  neg_ku_micro : 0.12
+  neg_ku_macro : 0.05
+  neg_ku_atm : 0.1
+
+  macro_min : 401.325
   
 channel_volume : # mL (= 1e-6m^3)
-  pos1 : 1
-  pos2 : 1
-  pos3 : 1
-  neg1 : 1
-  neg2 : 1
-  neg3 : 1
+  pos1 : 50
+  pos2 : 50
+  pos3 : 0 
+  neg1 : 50
+  neg2 : 50
+  neg3 : 0
+  # pos1 : 50 
+  # pos2 : 70
+  # pos3 : 30 
+  # neg1 : 750
+  # neg2 : 400
+  # neg3 : 2000
 
 
 PID_parameters:
@@ -69,6 +82,7 @@ PID_parameters:
   neg_ref : 51.325
 
 system_parameters :
-  pwm_print : true
+  pwm_print : false
   mpc_valve_operate : false
   rl_valve_operate : false
+  do_initialize : false

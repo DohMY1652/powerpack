@@ -14,7 +14,6 @@ bool is_sensor_ready = false;
 bool is_reference_ready = false;
 bool is_initialized = false;
 
-
 int main(int argc, char* argv[]) {
     ros::init(argc, argv, "mpc_controller");
     ros::NodeHandle nh;
@@ -32,24 +31,22 @@ int main(int argc, char* argv[]) {
     //////////////////////////////////////////////////////
 
     ///////////////parameter server에서 yaml 데이터 받기//////////////////
-      std::string yaml_file;
-      if (!nh.getParam("yaml_file", yaml_file)) {
-          ROS_ERROR("Could not find parameter 'yaml_file'");
-          return 1;
-      }
+    std::string yaml_file;
+    if (!nh.getParam("yaml_file", yaml_file)) {
+        ROS_ERROR("Could not find parameter 'yaml_file'");
+        return 1;
+    }
 
-      YAML::Node config = YAML::LoadFile(yaml_file);
-      std::shared_ptr<DatabaseConfig> databaseconfig = std::make_shared<DatabaseConfig>(config);
-    
+    YAML::Node config = YAML::LoadFile(yaml_file);
+    std::shared_ptr<DatabaseConfig> databaseconfig =
+        std::make_shared<DatabaseConfig>(config);
+
     ///////////////////////////////////////////////////////////////////
 
     auto powerpack = std::make_unique<Powerpack>(nh, databaseconfig);
+    std::vector<double> mpc_parameters = databaseconfig->get_MPC_parameters();
 
-
-    
-
-    ros::Rate loop_rate(1000);  // 50 Hz
-
+    ros::Rate loop_rate((int)(1 / mpc_parameters[3]));
 
     while (ros::ok()) {
         if (is_initialized) {
@@ -57,14 +54,12 @@ int main(int argc, char* argv[]) {
         } else {
             if (powerpack->get_sensor_data()[0] == 0) {
                 ROS_INFO("Sensor not ready");
-            }
-            else {
+            } else {
                 is_sensor_ready = true;
             }
             if (powerpack->get_reference_data()[0] == 101.325) {
                 ROS_INFO("Reference not ready");
-            }
-            else {
+            } else {
                 is_reference_ready = true;
             }
             if (is_sensor_ready && is_reference_ready) {

@@ -111,6 +111,8 @@ private:
 
     OSQPInt n;
     OSQPInt m;
+    
+    double epsilon = 1e-6;
 
     std::vector<double> result;
 

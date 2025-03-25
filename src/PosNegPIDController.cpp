@@ -1,14 +1,20 @@
+#include <yaml-cpp/yaml.h>
+
+#include "DatabaseConfig.h"
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/UInt16MultiArray.h"
 
-#include <yaml-cpp/yaml.h>
-#include "DatabaseConfig.h"
-
 class PIDController {
-public:
+   public:
     PIDController(double kp, double ki, double kd)
-        : kp_(kp), ki_(ki), kd_(kd), prev_error_(0.0), integral_(0.0), output_min_(-50.0), output_max_(50.0) {}
+        : kp_(kp),
+          ki_(ki),
+          kd_(kd),
+          prev_error_(0.0),
+          integral_(0.0),
+          output_min_(-50.0),
+          output_max_(50.0) {}
 
     double compute(double setpoint, double measurement, double dt) {
         double error = setpoint - measurement;
@@ -21,7 +27,9 @@ public:
         } else if (output < output_min_) {
             output = output_min_;
         } else {
-            integral_ += error * dt; // Accumulate integral only when output is not saturated
+            integral_ +=
+                error *
+                dt;  // Accumulate integral only when output is not saturated
         }
 
         prev_error_ = error;
@@ -34,7 +42,7 @@ public:
         output_max_ = max;
     }
 
-private:
+   private:
     double kp_, ki_, kd_;
     double prev_error_;
     double integral_;
@@ -42,15 +50,18 @@ private:
 };
 
 class ControllerNode {
-public:
-    ControllerNode(ros::NodeHandle& nh, std::shared_ptr<DatabaseConfig>& databaseconfig)
+   public:
+    ControllerNode(ros::NodeHandle& nh,
+                   std::shared_ptr<DatabaseConfig>& databaseconfig)
         : atm_offset(101.325) {
-        sub_ = nh.subscribe("sen_raw_values", 1, &ControllerNode::sensorCallback, this);
-        pub_ = nh.advertise<std_msgs::UInt16MultiArray>("rl_pwm", 100);
-        raw_pub_ = nh.advertise<std_msgs::UInt16MultiArray>("raw_rl_pwm", 100);
+        sub_ = nh.subscribe("sen_raw_values", 1,
+                            &ControllerNode::sensorCallback, this);
+        pub_ = nh.advertise<std_msgs::UInt16MultiArray>("rl_pwm", 1);
+        raw_pub_ = nh.advertise<std_msgs::UInt16MultiArray>("raw_rl_pwm", 1);
         last_time_ = ros::Time::now();
 
-        std::vector<bool> system_parameters = databaseconfig->get_system_parameters();
+        std::vector<bool> system_parameters =
+            databaseconfig->get_system_parameters();
         operating = system_parameters[2];
 
         std::vector<double> pid_gains = databaseconfig->get_pid_gains();
@@ -60,7 +71,8 @@ public:
         pos_ref = pid_gains[7];
         neg_ref = pid_gains[8];
 
-        std::vector<double> parameters = databaseconfig->get_sensor_parameters();
+        std::vector<double> parameters =
+            databaseconfig->get_sensor_parameters();
         pos_offset = parameters[1];
         pos_gain = parameters[2];
         neg_offset = parameters[3];
@@ -69,11 +81,10 @@ public:
         pos_pid_->setOutputLimits(-50.0, 50.0);
         neg_pid_->setOutputLimits(-50.0, 50.0);
 
-        publisher = nh.advertise<std_msgs::Float32MultiArray>("rl_ref_values", 1);
-        
-        rl_ref  = databaseconfig->get_pid_gains();
+        publisher =
+            nh.advertise<std_msgs::Float32MultiArray>("rl_ref_values", 1);
 
-        
+        rl_ref = databaseconfig->get_pid_gains();
     }
 
     ~ControllerNode() {
@@ -84,11 +95,12 @@ public:
     void sensorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
         std_msgs::Float32MultiArray rl_ref_data;
         rl_ref_data.data.resize(2);
-        rl_ref_data.data[0] = static_cast<float_t> (rl_ref[7]);
-        rl_ref_data.data[1] = static_cast<float_t> (rl_ref[8]);
+        rl_ref_data.data[0] = static_cast<float_t>(rl_ref[7]);
+        rl_ref_data.data[1] = static_cast<float_t>(rl_ref[8]);
         publisher.publish(rl_ref_data);
         if (msg->data.size() < 9) {
-            ROS_WARN("Expected sen_values size at least 9, but got size %zu", msg->data.size());
+            ROS_WARN("Expected sen_values size at least 9, but got size %zu",
+                     msg->data.size());
             return;
         }
 
@@ -96,8 +108,12 @@ public:
         double dt = (now - last_time_).toSec();
         last_time_ = now;
 
-        double pos_pwm = pos_pid_->compute(pos_ref, ((msg->data[0] - pos_offset) * pos_gain + atm_offset), dt);
-        double neg_pwm = -1 * neg_pid_->compute(neg_ref, ((msg->data[1] - neg_offset) * neg_gain + atm_offset), dt);
+        double pos_pwm = pos_pid_->compute(
+            pos_ref, ((msg->data[0] - pos_offset) * pos_gain + atm_offset), dt);
+        double neg_pwm =
+            -1 * neg_pid_->compute(
+                     neg_ref,
+                     ((msg->data[1] - neg_offset) * neg_gain + atm_offset), dt);
         ROS_INFO("Pos_raw_pwm : %f", pos_pwm);
         ROS_INFO("Neg_raw_pwm : %f", neg_pwm);
         pos_pwm = 10 * (0.6 * 100 + 0.4 * (50 - pos_pwm));
@@ -121,7 +137,7 @@ public:
         raw_pub_.publish(raw_pwm_msg);
     }
 
-private:
+   private:
     ros::Subscriber sub_;
     ros::Publisher pub_;
     ros::Publisher raw_pub_;
@@ -142,7 +158,6 @@ private:
     std::vector<double> rl_ref;
 
     ros::Publisher publisher;
-
 };
 
 int main(int argc, char** argv) {
@@ -156,7 +171,8 @@ int main(int argc, char** argv) {
     }
 
     YAML::Node config = YAML::LoadFile(yaml_file);
-    std::shared_ptr<DatabaseConfig> databaseconfig = std::make_shared<DatabaseConfig>(config);
+    std::shared_ptr<DatabaseConfig> databaseconfig =
+        std::make_shared<DatabaseConfig>(config);
 
     ControllerNode controller(nh, databaseconfig);
 

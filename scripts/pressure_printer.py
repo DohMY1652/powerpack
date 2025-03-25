@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+
 import rospy
 from std_msgs.msg import Float32MultiArray, UInt16MultiArray
 import sys
+import csv
+import os
+import time
 
 # 전역 변수 초기화
 sen_values = []
@@ -13,6 +17,23 @@ rl_ref_values = []
 # ANSI 코드로 화면 지우기 및 커서 이동
 CLEAR_SCREEN = "\033[2J"
 MOVE_CURSOR_TO_TOP = "\033[H"
+
+# CSV 파일 설정
+csv_filename = "arm_test_10kPa_diff.csv"
+file_exists = os.path.isfile(csv_filename)
+
+# CSV 파일 열기 및 헤더 작성 (처음 실행 시에만)
+with open(csv_filename, mode='a', newline='') as file:
+    writer = csv.writer(file)
+    if not file_exists:
+        writer.writerow(["elapsed_ms", "channel_1_ref", "channel_1_sen", "channel_1_error", "channel_1_micro", "channel_1_macro", "channel_1_atm",
+                         "channel_2_ref", "channel_2_sen", "channel_2_error", "channel_2_micro", "channel_2_macro", "channel_2_atm",
+                         "channel_3_ref", "channel_3_sen", "channel_3_error", "channel_3_micro", "channel_3_macro", "channel_3_atm",
+                         "channel_4_ref", "channel_4_sen", "channel_4_error", "channel_4_micro", "channel_4_macro", "channel_4_atm",
+                         "channel_5_ref", "channel_5_sen", "channel_5_error", "channel_5_micro", "channel_5_macro", "channel_5_atm",
+                         "channel_6_ref", "channel_6_sen", "channel_6_error", "channel_6_micro", "channel_6_macro", "channel_6_atm"])
+
+start_time = time.time()
 
 # 콜백 함수 정의
 def sen_values_callback(msg):
@@ -35,15 +56,16 @@ def rl_pwm_values_callback(msg):
     global rl_pwm_values
     rl_pwm_values = list(msg.data)
 
-# 데이터 처리 및 출력 함수
+# 데이터 처리 및 저장 함수
 def process_data():
     if len(sen_values) >= 9 and len(ref_values) >= 6:
         ref_values_extended = rl_ref_values[:2] + ref_values[:6]
         selected_pairs = [2, 3, 4, 5, 6, 7]
 
-        output = MOVE_CURSOR_TO_TOP  # 커서를 화면 상단으로 이동
-
-        # 첫 번째 테이블 출력
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        row = [elapsed_ms]
+        
+        output = MOVE_CURSOR_TO_TOP
         output += "-----------\n"
         output += f"{'ref':10} {'sen':10} {'error':10} {'micro':10} {'macro':10} {'atm':10}\n"
 
@@ -57,36 +79,16 @@ def process_data():
                 micro = mpc_pwm_values[(i - 2) * 3]
                 macro = mpc_pwm_values[(i - 2) * 3 + 1]
                 atm = mpc_pwm_values[(i - 2) * 3 + 2]
-
+            
+            row.extend([ref_value, sen_value, error, micro, macro, atm])
             output += f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f} {micro:10} {macro:10} {atm:10}\n"
-
-        # 두 번째 테이블 출력
-        output += "===========\n"
-        output += f"{'ref':10} {'sen':10} {'error':10} {'pwm':10} {'gauge pressure':10}\n"
-
-        if len(rl_pwm_values) == 2:
-            pwm_value_6, pwm_value_7 = rl_pwm_values
-
-            ref_value_6 = ref_values_extended[0] - 101.325 if len(ref_values_extended) > 6 else 0
-            sen_value_6 = sen_values[0] - 101.325 if len(sen_values) > 0 else 0
-            error_6 = ref_value_6 - sen_value_6
-
-            ref_value_7 = ref_values_extended[1] - 101.325 if len(ref_values_extended) > 7 else 0
-            sen_value_7 = sen_values[1] - 101.325 if len(sen_values) > 1 else 0
-            error_7 = -1 * (ref_value_7 - sen_value_7)
-
-            output += f"{ref_value_6:10.2f} {sen_value_6:10.2f} {error_6:10.2f} {pwm_value_6:10}\n"
-            output += f"{ref_value_7:10.2f} {sen_value_7:10.2f} {error_7:10.2f} {pwm_value_7:10}\n"
-
-        # 두 번째 테이블 출력
-        output += "===========\n"
-
-        sen_value_macro = sen_values[2]
         
-        output += f"{'Macro pressure':10}\n"
-        output += f"{sen_value_macro:10.2f}\n"
-
         output += "-----------\n"
+
+        # CSV 파일에 저장
+        with open(csv_filename, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
 
         # 화면에 출력
         sys.stdout.write(CLEAR_SCREEN + output)

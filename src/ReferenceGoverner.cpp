@@ -10,8 +10,11 @@ ReferenceGoverner::ReferenceGoverner(
       frequency(databaseconfig->get_reference_parameters()[0]) {
     data.resize(n_channel, 101.325);
 
-    subscriber = nh.subscribe("mpc_ref_values", frequency,
-                              &ReferenceGoverner::subscriber_callback, this);
+    subscriber = nh.subscribe("mpc_ref_values", 1,  // 큐 사이즈를 두 번째 인자로 설정
+                        &ReferenceGoverner::subscriber_callback, this,
+                        ros::TransportHints().tcpNoDelay());
+
+
 
     data.resize(n_channel);
 }

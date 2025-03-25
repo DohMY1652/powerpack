@@ -16,21 +16,25 @@ class ReferenceGoverner {
                       std::shared_ptr<DatabaseConfig>& databaseconfig);
     ~ReferenceGoverner();
 
-    void subscriber_callback(
-        const std_msgs::Float32MultiArray::ConstPtr& data) {
-        std::vector<double> data_vector;
-        assert(data->data.size() == n_channel);
-        data_vector.reserve(data->data.size());
-        for (const auto& value : data->data) {
-            data_vector.push_back(std::move((double)(value)));
-        }
-        update(data_vector);
-        // ROS_INFO("============");
-        // for (const auto& value : data_vector) {
-        //     ROS_INFO("Reference data : %f", value);
-        // }
-       
+    void subscriber_callback(const std_msgs::Float32MultiArray::ConstPtr& data) {
+    std::vector<double> data_vector;
+    
+    assert(data->data.size() == n_channel);
+    data_vector.reserve(data->data.size());
+
+    for (const auto& value : data->data) {
+        data_vector.push_back(static_cast<double>(value));  // float -> double로 변환
     }
+
+    update(data_vector);
+
+    // // 로그로 받은 데이터 출력 (디버깅용)
+    // ROS_INFO("============");
+    // for (const auto& value : data_vector) {
+    //     ROS_INFO("Reference data : %f", value);
+    // }
+}
+
 
     void update(const std::vector<double> _data);
 

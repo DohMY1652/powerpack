@@ -18,7 +18,11 @@ QP::QP(std::shared_ptr<DatabaseConfig>& databaseconfig)
         settings = new OSQPSettings();
         osqp_set_default_settings(settings);
         settings->alpha = 1.0;
-        settings->verbose =0;
+        settings->verbose = 0;
+
+        settings->eps_abs = 1e-6;
+        settings->eps_rel = 1e-6;
+        settings->max_iter = 1000;
 
         raw_result.resize(n_u,0);
     }
@@ -58,12 +62,12 @@ void QP::set_data(const Eigen::MatrixXd& P_mat,
 
     exitflag = osqp_setup(&solver, P, q_vec.data(), A, l_vec.data(), u_vec.data(), m, n, settings);
 
+    std::cout << "Lower bounds: " << l_vec.transpose() << std::endl;
+    std::cout << "Upper bounds: " << u_vec.transpose() << std::endl;
+
     if (exitflag != 0) {
         return;
     }
-    // if (exitflag != 0) {
-    //     throw std::runtime_error("OSQP setup failed.");
-    // }
 }
 
 

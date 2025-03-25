@@ -98,6 +98,8 @@ class Sensor {
 
     std_msgs::Float32MultiArray data_array;
 
+    bool do_initialize;
+
 };
 
 #endif  // SENSOR_H
