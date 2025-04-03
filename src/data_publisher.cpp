@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
 
     // 주기적으로 데이터를 publish하는 루프 설정 (10Hz)
-    ros::Rate rate(10);  // 10Hz
+    ros::Rate rate(1000);  // 10Hz
 
     while (ros::ok())
     {

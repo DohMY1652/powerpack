@@ -7,33 +7,29 @@ import threading
 from std_msgs.msg import Float32MultiArray
 
 def data_receiver(pub, client_socket):
-    """별도의 스레드에서 TCP 소켓 데이터를 수신하고, 토픽으로 Publish."""
-    buffer = b''
+    """UDP로 데이터를 수신하고 ROS 토픽으로 Publish."""
     message_size = 6 * 4  # 6개의 float, 총 24바이트
 
     while not rospy.is_shutdown():
         try:
-            data = client_socket.recv(24)  # 24바이트만큼 수신
+            data, addr = client_socket.recvfrom(24)  # 최대 1024바이트 수신
             if not data:
-                rospy.logwarn("Server closed connection.")
-                break
+                rospy.logwarn("No data received.")
+                continue
 
-            buffer += data
+            if len(data) < message_size:
+                rospy.logwarn(f"Incomplete UDP packet received: {len(data)} bytes")
+                continue
 
-            # 버퍼에 24바이트(=6 float) 이상 있으면 패킷 단위로 파싱
-            while len(buffer) >= message_size:
-                message_data = buffer[:message_size]
-                buffer = buffer[message_size:]
+            # 필요한 만큼만 사용 (나머지는 무시)
+            message_data = data[:message_size]
+            values = struct.unpack('f' * 6, message_data)
+            values = [v + 101.325 for v in values]
 
-                values = struct.unpack('f' * 6, message_data)
-                # 6개의 모든 reference 값에 101.325를 더함
-                values = [v + 101.325 for v in values]
-
-                # ROS 메시지 발행
-                msg = Float32MultiArray()
-                msg.data = values
-                pub.publish(msg)
-                rospy.loginfo(f"Published: {values}")
+            msg = Float32MultiArray()
+            msg.data = values
+            pub.publish(msg)
+            rospy.loginfo(f"Published: {values}")
 
         except socket.error as e:
             rospy.logerr(f"Socket error: {e}")
@@ -42,48 +38,34 @@ def data_receiver(pub, client_socket):
             rospy.logerr(f"Struct unpacking error: {e}")
             break
 
-    # 루프 종료 시 소켓 닫기
     client_socket.close()
-    rospy.loginfo("Data receiver thread ended.")
+    rospy.loginfo("UDP socket closed.")
 
-def tcp_node():
-    rospy.init_node('tcp_to_ros', anonymous=True)
+def udp_node():
+    rospy.init_node('udp_to_ros', anonymous=True)
     pub = rospy.Publisher('/mpc_ref_values', Float32MultiArray, queue_size=1)
 
-    HOST = '192.168.3.10'
-    # HOST = '192.168.0.40'
+    HOST = '0.0.0.0'  # 모든 인터페이스에서 수신
     PORT = 8688
 
-    # TCP 클라이언트 소켓 생성
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket.bind((HOST, PORT))
+    rospy.loginfo(f"Listening for UDP packets on {HOST}:{PORT}")
 
-    # Nagle 알고리즘 끄기(지연 최소화)
-    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
-    try:
-        client_socket.connect((HOST, PORT))
-        rospy.loginfo(f"Connected to server {HOST}:{PORT}")
-    except Exception as e:
-        rospy.logerr(f"Connection failed: {e}")
-        return
-
-    # 별도 스레드에서 데이터 수신 전담
     receiver_thread = threading.Thread(
-        target=data_receiver, 
-        args=(pub, client_socket), 
+        target=data_receiver,
+        args=(pub, client_socket),
         daemon=True
     )
     receiver_thread.start()
 
-    # 메인 스레드는 ROS 이벤트 루프(콜백 처리 등) 담당
     rospy.spin()
 
-    # 노드 종료 시 소켓 닫기 (스레드도 함께 종료될 것)
     client_socket.close()
-    rospy.loginfo("TCP connection closed.")
+    rospy.loginfo("UDP node shut down.")
 
 if __name__ == '__main__':
     try:
-        tcp_node()
+        udp_node()
     except rospy.ROSInterruptException:
         pass

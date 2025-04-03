@@ -27,7 +27,7 @@ def apply_moving_average_filter(channel_index, new_value):
 def sensor_in():
     rospy.init_node('sensor_input', anonymous=True)
     pub = rospy.Publisher('sen_raw_values', Float32MultiArray, queue_size=1)
-    rate = rospy.Rate(1000)  # 1 kHz
+    rate = rospy.Rate(100)  # 100Hz
 
     if ADC.ADS1263_init_ADC1('ADS1263_400SPS') == -1:
         exit()
@@ -46,7 +46,7 @@ def sensor_in():
             filtered_values[i] = apply_moving_average_filter(i, data)
 
         msg = Float32MultiArray(data=filtered_values)
-        rospy.loginfo(f"Filtered values: {filtered_values}")
+        # rospy.loginfo(f"Filtered values: {filtered_values}")
         pub.publish(msg)
         rate.sleep()
 
