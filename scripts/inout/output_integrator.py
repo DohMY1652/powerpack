@@ -21,7 +21,7 @@ class OutputIntegrator:
         self.sub_rl = rospy.Subscriber('rl_pwm', UInt16MultiArray, self.callback_rl, queue_size=1)
 
         # Set up a timer to publish periodically
-        self.rate = rospy.Rate(1000)  # 1 kHz
+        self.rate = rospy.Rate(50)
 
         # Separate data buffers for mpc and rl
         self.data_mpc = deque(maxlen=self.N_mpc)

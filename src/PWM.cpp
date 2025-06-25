@@ -48,9 +48,9 @@ void PWM::update_pwm(std::vector<double> data) {
         raw_publisher.publish(raw_pwm_data);
         publisher.publish(pwm_data);
         if(printing) {
-           for (const double& value : data) {
-                std::cout << value << " ";
-           }
-           std::cout << std::endl;
+         //   for (const double& value : data) {
+         //        std::cout << value << " ";
+         //   }
+         //   std::cout << std::endl;
         }
 }

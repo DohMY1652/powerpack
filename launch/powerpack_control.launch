@@ -11,6 +11,6 @@
     </node>
     <node pkg="powerpack" type="pid_controller" name="pid_controller" />
     
-    <node pkg="powerpack" type="data_publisher" name="data_publisher" />
+    <!-- <node pkg="powerpack" type="data_publisher" name="data_publisher" /> -->
 
 </launch>

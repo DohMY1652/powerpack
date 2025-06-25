@@ -31,10 +31,10 @@ negative_channel:
   n_channel : 3
 
 MPC_parameters:
-  NP : 5
+  NP : 3
   n_x : 1
   n_u : 3
-  Ts : 0.01
+  Ts : 0.02
   Q_values : 10
   R_values : 1
   # pos_ku_micro : 10
@@ -43,21 +43,21 @@ MPC_parameters:
   # neg_ku_micro : 10
   # neg_ku_macro : 10
   # neg_ku_atm : 10
-  pos_ku_micro : 1.1
-  pos_ku_macro : 0.8
-  pos_ku_atm : 0.8
-  neg_ku_micro : 0.12
-  neg_ku_macro : 0.05
+  pos_ku_micro : 1.8
+  pos_ku_macro : 1.5
+  pos_ku_atm : 0.7
+  neg_ku_micro : 0.3
+  neg_ku_macro : 0.1
   neg_ku_atm : 0.1
 
   macro_min : 401.325
   
 channel_volume : # mL (= 1e-6m^3)
-  pos1 : 50
-  pos2 : 50
-  pos3 : 0 
-  neg1 : 50
-  neg2 : 50
+  pos1 : 1500
+  pos2 : 1500
+  pos3 : 0
+  neg1 : 836
+  neg2 : 836
   neg3 : 0
   # pos1 : 50 
   # pos2 : 70
@@ -83,6 +83,6 @@ PID_parameters:
 
 system_parameters :
   pwm_print : false
-  mpc_valve_operate : false
-  rl_valve_operate : false
+  mpc_valve_operate : true
+  rl_valve_operate : true
   do_initialize : false

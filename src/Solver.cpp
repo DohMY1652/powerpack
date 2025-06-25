@@ -79,9 +79,9 @@ void Solver::update_pressure() {
         P_micro = sensor_values[1];
         P_macro = sensor_values[2];
     }
-    std::cout<< "P_now" << P_now << std::endl;
-    std::cout<< "P_micro" << P_micro << std::endl;
-    std::cout<< "P_macro" << P_macro << std::endl;
+    // std::cout<< "P_now" << P_now << std::endl;
+    // std::cout<< "P_micro" << P_micro << std::endl;
+    // std::cout<< "P_macro" << P_macro << std::endl;
 }
 
 void Solver::update_reference() {
@@ -92,14 +92,14 @@ void Solver::update_reference() {
 
 void Solver::calculate_input_reference() {
     Eigen::VectorXd target_trajectory = Eigen::VectorXd::Map(P_ref.data(), NP);
-    std::cout << "===============channel===============" << std::endl;
-    std::cout << reference_channel << std::endl;
-    std::cout << "===============target===============" << std::endl;
-    std::cout << target_trajectory << std::endl;
+    // std::cout << "===============channel===============" << std::endl;
+    // std::cout << reference_channel << std::endl;
+    // std::cout << "===============target===============" << std::endl;
+    // std::cout << target_trajectory << std::endl;
     Eigen::VectorXd const_P_now = Eigen::VectorXd::Constant(NP, P_now);
     Eigen::VectorXd now_error = target_trajectory - const_P_now;
-    std::cout << "===============error===============" << std::endl;
-    std::cout << now_error << std::endl;
+    // std::cout << "===============error===============" << std::endl;
+    // std::cout << now_error << std::endl;
     if (is_positive) {
         now_error *= 1;
     } else {
@@ -119,10 +119,10 @@ void Solver::calculate_input_reference() {
         input_reference_macro[i] = std::min(100.0, std::max(0.0, input_reference_macro[i]));
         input_reference_atm[i] = std::min(100.0, std::max(0.0, input_reference_atm[i]));
     }
-    std::cout << "===============raw reference===============" << std::endl;
-    std::cout << input_reference_micro << std::endl;
-    std::cout << input_reference_macro << std::endl;
-    std::cout << input_reference_atm << std::endl;
+    // std::cout << "===============raw reference===============" << std::endl;
+    // std::cout << input_reference_micro << std::endl;
+    // std::cout << input_reference_macro << std::endl;
+    // std::cout << input_reference_atm << std::endl;
 
     for(int i = 0; i < NP; ++i) {
         input_reference_micro[i] = input_mapping(input_reference_micro[i],P_micro, P_now);
@@ -132,10 +132,10 @@ void Solver::calculate_input_reference() {
 
     U_ref = {input_reference_micro[0], input_reference_macro[0], input_reference_atm[0]};
 
-    std::cout << "===============reference===============" << std::endl;
-    std::cout << input_reference_micro << std::endl;
-    std::cout << input_reference_macro << std::endl;
-    std::cout << input_reference_atm << std::endl;
+    // std::cout << "===============reference===============" << std::endl;
+    // std::cout << input_reference_micro << std::endl;
+    // std::cout << input_reference_macro << std::endl;
+    // std::cout << input_reference_atm << std::endl;
 }
 
 double Solver::input_mapping(double input, double P_in, double P_out) {
@@ -251,10 +251,10 @@ void Solver::calculate_constraint_matrix() {
         LL(i * 3 + 1) = 0 - input_reference_macro(i);
         LL(i * 3 + 2) = 0 - input_reference_atm(i);
     }
-    std::cout << "-----------UL-----------" << std::endl;
-    std::cout << UL << std::endl;
-    std::cout << "-----------LL----------" << std::endl;
-    std::cout << LL << std::endl;
+    // std::cout << "-----------UL-----------" << std::endl;
+    // std::cout << UL << std::endl;
+    // std::cout << "-----------LL----------" << std::endl;
+    // std::cout << LL << std::endl;
 }
 
 void Solver::calculate_upper_triangle_matrix(
@@ -287,11 +287,11 @@ void Solver::calculate_upper_triangle_matrix(
 
 void Solver::set_result() {
     std::vector<double> raw_result = qp->get_raw_result();
-    std::cout << "+++++++++++++++++++raw_result++++++++++++++++++" << std::endl;
-    for (const double& value :raw_result) {
-                std::cout << value << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "+++++++++++++++++++raw_result++++++++++++++++++" << std::endl;
+    // for (const double& value :raw_result) {
+    //             std::cout << value << " ";
+    // }
+    // std::cout << std::endl;
 
     
     assert(U_ref.size() == raw_result.size());
@@ -303,11 +303,11 @@ void Solver::set_result() {
         }
         result[i] = std::max(0.0, std::min((U_ref[i] + raw_result[i]), 100.0));
     }
-    std::cout << "+++++++++++++++++++final_result++++++++++++++++++" << std::endl;
-    for (const double& value :result) {
-                std::cout << value << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "+++++++++++++++++++final_result++++++++++++++++++" << std::endl;
+    // for (const double& value :result) {
+    //             std::cout << value << " ";
+    // }
+    // std::cout << std::endl;
 }
 
 void Solver::run_QP() {

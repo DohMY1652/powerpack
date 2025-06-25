@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import rospy
 from std_msgs.msg import Float32MultiArray, UInt16MultiArray
 import sys
@@ -7,35 +6,42 @@ import csv
 import os
 import time
 
-# 전역 변수 초기화
+# ========== 사용자 설정 ==========
+# ref_extended (rl_ref[:2] + ref[:6]) 에서 출력할 인덱스 리스트 (예: [2,3,4,5,6,7])
+# selected_channels = [2, 3, 4, 5, 6, 7]
+selected_channels = [2, 3, 5, 6]
+# control 데이터 (micro, macro, atm)를 출력할지 여부
+include_control_data = True
+# ==================================
+
+# 전역 데이터 변수
 sen_values = []
 ref_values = []
 mpc_pwm_values = []
 rl_pwm_values = []
 rl_ref_values = []
 
-# ANSI 코드로 화면 지우기 및 커서 이동
+# ANSI 코드 (화면 클리어 및 커서 이동)
 CLEAR_SCREEN = "\033[2J"
 MOVE_CURSOR_TO_TOP = "\033[H"
 
 # CSV 파일 설정
-csv_filename = "arm_test_10kPa_diff.csv"
+csv_filename = "2DoF_Combined_test_v01_25_06_13.csv"
 file_exists = os.path.isfile(csv_filename)
-
-# CSV 파일 열기 및 헤더 작성 (처음 실행 시에만)
-with open(csv_filename, mode='a', newline='') as file:
-    writer = csv.writer(file)
-    if not file_exists:
-        writer.writerow(["elapsed_ms", "channel_1_ref", "channel_1_sen", "channel_1_error", "channel_1_micro", "channel_1_macro", "channel_1_atm",
-                         "channel_2_ref", "channel_2_sen", "channel_2_error", "channel_2_micro", "channel_2_macro", "channel_2_atm",
-                         "channel_3_ref", "channel_3_sen", "channel_3_error", "channel_3_micro", "channel_3_macro", "channel_3_atm",
-                         "channel_4_ref", "channel_4_sen", "channel_4_error", "channel_4_micro", "channel_4_macro", "channel_4_atm",
-                         "channel_5_ref", "channel_5_sen", "channel_5_error", "channel_5_micro", "channel_5_macro", "channel_5_atm",
-                         "channel_6_ref", "channel_6_sen", "channel_6_error", "channel_6_micro", "channel_6_macro", "channel_6_atm"])
+csv_file = open(csv_filename, mode='a', newline='')
+csv_writer = csv.writer(csv_file)
+if not file_exists:
+    # CSV 헤더를 설정: 각 채널마다 ref, sen, error에 더해 control 데이터 포함 여부에 따라 컬럼 결정
+    header = ["elapsed_ms"]
+    for idx, ch in enumerate(selected_channels, start=1):
+        header.extend([f"channel_{idx}_ref", f"channel_{idx}_sen", f"channel_{idx}_error"])
+        if include_control_data:
+            header.extend([f"channel_{idx}_micro", f"channel_{idx}_macro", f"channel_{idx}_atm"])
+    csv_writer.writerow(header)
 
 start_time = time.time()
 
-# 콜백 함수 정의
+# 콜백 함수 정의 (수신된 데이터를 전역 변수에 저장)
 def sen_values_callback(msg):
     global sen_values
     sen_values = list(msg.data)
@@ -56,45 +62,76 @@ def rl_pwm_values_callback(msg):
     global rl_pwm_values
     rl_pwm_values = list(msg.data)
 
-# 데이터 처리 및 저장 함수
+# 데이터 처리, CSV 저장 및 화면 출력 함수
 def process_data():
+    global sen_values, ref_values, mpc_pwm_values, rl_pwm_values, rl_ref_values, start_time, csv_writer, csv_file
+
+    # 충분한 데이터가 수신된 경우에만 처리
     if len(sen_values) >= 9 and len(ref_values) >= 6:
-        ref_values_extended = rl_ref_values[:2] + ref_values[:6]
-        selected_pairs = [2, 3, 4, 5, 6, 7]
+        # 로컬 변수 캐싱
+        sen = sen_values
+        ref = ref_values
+        rl_ref = rl_ref_values
+        mpc_pwm = mpc_pwm_values
+
+        # ref_extended는 rl_ref의 앞 2개와 ref의 앞 6개를 결합 (총 8개)
+        ref_extended = rl_ref[:2] + ref[:6]
 
         elapsed_ms = int((time.time() - start_time) * 1000)
         row = [elapsed_ms]
         
-        output = MOVE_CURSOR_TO_TOP
-        output += "-----------\n"
-        output += f"{'ref':10} {'sen':10} {'error':10} {'micro':10} {'macro':10} {'atm':10}\n"
-
-        for i in selected_pairs:
-            ref_value = ref_values_extended[i] if i < len(ref_values_extended) else 0
-            sen_value = sen_values[i+1] if i+1 < len(sen_values) else 0
-            error = ref_value - sen_value
-
-            micro, macro, atm = (0, 0, 0)
-            if len(mpc_pwm_values) >= ((i - 2) + 1) * 3:
-                micro = mpc_pwm_values[(i - 2) * 3]
-                macro = mpc_pwm_values[(i - 2) * 3 + 1]
-                atm = mpc_pwm_values[(i - 2) * 3 + 2]
-            
-            row.extend([ref_value, sen_value, error, micro, macro, atm])
-            output += f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f} {micro:10} {macro:10} {atm:10}\n"
+        # 출력 문자열 구성: 리스트에 담고 join()을 사용
+        output_lines = [
+            MOVE_CURSOR_TO_TOP,
+            "-----------"
+        ]
         
-        output += "-----------\n"
+        # 출력 헤더 문자열 구성
+        header_cols = ["ref", "sen", "error"]
+        if include_control_data:
+            header_cols.extend(["micro", "macro", "atm"])
+        output_lines.append(" ".join(f"{col:10}" for col in header_cols))
+        
+        # 각 선택 채널에 대해 데이터 처리
+        # pwm 데이터는 선택된 채널 순서대로 (즉, 첫번째 selected_channels에 해당하는 control 데이터는 mpc_pwm[0:3], 두번째는 [3:6] 등)
+        for idx, ch in enumerate(selected_channels):
+            # ref 데이터: ref_extended[ch] (존재하지 않으면 0)
+            ref_value = ref_extended[ch] if ch < len(ref_extended) else 0
+            # sensor 데이터: sen[ch+1] (원래 코드에서 채널에 대해 offset +1 적용)
+            sen_value = sen[ch+1] if (ch+1) < len(sen) else 0
+            error = ref_value - sen_value
+            
+            if include_control_data:
+                # PWM 데이터: 순서대로 3개씩 할당 (데이터 부족 시 0 할당)
+                if len(mpc_pwm) >= (idx+1)*3:
+                    micro = mpc_pwm[idx*3]
+                    macro = mpc_pwm[idx*3+1]
+                    atm = mpc_pwm[idx*3+2]
+                else:
+                    micro, macro, atm = (0, 0, 0)
+                row.extend([ref_value, sen_value, error, micro, macro, atm])
+                line = f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f} {micro:10} {macro:10} {atm:10}"
+            else:
+                row.extend([ref_value, sen_value, error])
+                line = f"{ref_value:10.2f} {sen_value:10.2f} {error:10.2f}"
+            
+            output_lines.append(line)
+        
+        output_lines.append("-----------")
+        output_str = "\n".join(output_lines) + "\n"
+        
+        # CSV 파일에 저장 및 flush
+        csv_writer.writerow(row)
+        csv_file.flush()
 
-        # CSV 파일에 저장
-        with open(csv_filename, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(row)
-
-        # 화면에 출력
-        sys.stdout.write(CLEAR_SCREEN + output)
+        # 화면 출력
+        sys.stdout.write(CLEAR_SCREEN + output_str)
         sys.stdout.flush()
 
-# 메인 함수
+# 노드 종료 시 CSV 파일 닫기
+def shutdown_hook():
+    csv_file.close()
+
 if __name__ == '__main__':
     rospy.init_node('sensor_ref_pair_printer', anonymous=True)
 
@@ -105,7 +142,9 @@ if __name__ == '__main__':
     rospy.Subscriber('/raw_mpc_pwm', UInt16MultiArray, mpc_pwm_values_callback)
     rospy.Subscriber('/raw_rl_pwm', UInt16MultiArray, rl_pwm_values_callback)
 
-    rate = rospy.Rate(100)
+    rospy.on_shutdown(shutdown_hook)
+    
+    rate = rospy.Rate(10)  # 10Hz
     while not rospy.is_shutdown():
         process_data()
         rate.sleep()

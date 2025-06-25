@@ -62,8 +62,8 @@ void QP::set_data(const Eigen::MatrixXd& P_mat,
 
     exitflag = osqp_setup(&solver, P, q_vec.data(), A, l_vec.data(), u_vec.data(), m, n, settings);
 
-    std::cout << "Lower bounds: " << l_vec.transpose() << std::endl;
-    std::cout << "Upper bounds: " << u_vec.transpose() << std::endl;
+    // std::cout << "Lower bounds: " << l_vec.transpose() << std::endl;
+    // std::cout << "Upper bounds: " << u_vec.transpose() << std::endl;
 
     if (exitflag != 0) {
         return;
