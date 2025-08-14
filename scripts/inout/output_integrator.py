@@ -51,7 +51,7 @@ class OutputIntegrator:
             averaged_mpc = self.apply_moving_average(self.data_mpc, self.N_mpc)
             averaged_rl = self.apply_moving_average(self.data_rl, self.N_rl)
 
-            merged_data = averaged_mpc[0:9] + [0]*7 + averaged_mpc[9:18] + averaged_rl + [0]*5  # Merge arrays by concatenation
+            merged_data = averaged_mpc[0:12] + [0]*4 + averaged_mpc[12:24] + averaged_rl + [0]*2  # Merge arrays by concatenation
             output_msg = UInt16MultiArray()
             output_msg.data = merged_data
 

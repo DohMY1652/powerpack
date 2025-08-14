@@ -21,14 +21,17 @@ Reference_parameters:
 PWM_parameters:
   frequency : 1000
 
-  pid_pos_index : 18
-  pid_neg_index : 19
+  pid_pos_index : 24
+  pid_neg_index : 25
+
+  # pid_pos_index : 18
+  # pid_neg_index : 19
 
 positive_channel:
-  n_channel : 3
+  n_channel : 4
 
 negative_channel:
-  n_channel : 3
+  n_channel : 4
 
 MPC_parameters:
   NP : 3
@@ -53,12 +56,14 @@ MPC_parameters:
   macro_min : 401.325
   
 channel_volume : # mL (= 1e-6m^3)
-  pos1 : 1500
-  pos2 : 1500
-  pos3 : 0
-  neg1 : 836
-  neg2 : 836
-  neg3 : 0
+  pos1 : 950
+  pos2 : 950
+  pos3 : 175
+  pos4 : 100
+  neg1 : 950
+  neg2 : 950
+  neg3 : 175
+  neg4 : 100
   # pos1 : 50 
   # pos2 : 70
   # pos3 : 30 
@@ -68,14 +73,14 @@ channel_volume : # mL (= 1e-6m^3)
 
 
 PID_parameters:
-  n_channel : 3
+  n_channel : 2
 
-  pos_kp : 0.1
+  pos_kp : 0.7
   pos_ki : 0.03
   pos_kd : 0.0
 
+  neg_kp : 0.8
   neg_ki : 0.2
-  neg_kp : 0.06
   neg_kd : 0.0
 
   pos_ref : 301.325

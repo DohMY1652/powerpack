@@ -10,7 +10,7 @@ data_lock = threading.Lock()
 
 def data_receiver(tcp_socket):
     global latest_data
-    channel = 6
+    channel = 8
     rx_bytes = channel * 2  # uint16 * 6 = 12 bytes
     buffer = b''
 
@@ -60,7 +60,7 @@ def tcp_node():
     pub = rospy.Publisher('/mpc_ref_values', Float32MultiArray, queue_size=1)
 
     HOST = '169.254.46.254'
-    PORT = 2248
+    PORT = 2265
 
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)

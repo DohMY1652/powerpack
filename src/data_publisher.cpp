@@ -24,7 +24,8 @@ int main(int argc, char** argv)
         sen_values_msg.data = {1.0, 1.0, 4.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
         std_msgs::Float32MultiArray ref_values_msg;
-        ref_values_msg.data = {201.325, 201.325, 201.325, 71.325, 71.325, 71.325};
+        // ref_values_msg.data = {201.325, 201.325, 201.325, 201.325, 71.325, 71.325, 71.325, 71.325};
+        ref_values_msg.data = {101.325, 151.325, 101.325, 101.325, 51.325, 101.325, 101.325, 101.325};
 
         std_msgs::UInt16MultiArray rl_pwm_msg;
         rl_pwm_msg.data = {10, 10};

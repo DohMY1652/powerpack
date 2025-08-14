@@ -57,5 +57,11 @@ void Powerpack::run() {
         pwm_values.push_back(tmp[1]);
         pwm_values.push_back(tmp[2]);
     }
+    pwm_values[9] = 0;
+    pwm_values[10] = 0;
+    pwm_values[11] = 0;
+    pwm_values[21] = 0;
+    pwm_values[22] = 0;
+    pwm_values[23] = 0;
     set_pwm();
 }

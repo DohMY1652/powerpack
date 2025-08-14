@@ -32,9 +32,9 @@ class Sensor {
             data_vector.push_back(static_cast<double>(raw_data[1] - offset[1]) *
                                       neg_gain +
                                   atm_offset);
-            data_vector.push_back(static_cast<double>(raw_data[2] - offset[2]) *
-                                      pos_gain +
-                                  atm_offset);
+        //    data_vector.push_back(static_cast<double>(raw_data[2] - offset[2]) *
+        //                              pos_gain +
+        //                          atm_offset);
             for (int index = (n_pump_channel + n_macro_channel);
                  index < (n_pump_channel + n_macro_channel + n_pos_channel);
                  ++index) {

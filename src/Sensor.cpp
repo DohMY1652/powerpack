@@ -8,7 +8,7 @@ Sensor::Sensor(ros::NodeHandle& nh,
     : databaseconfig(databaseconfig),
       is_initialized(false),
       n_pump_channel(2),
-      n_macro_channel(1),
+      n_macro_channel(0),
       n_pos_channel(databaseconfig->get_n_pos_channel()),
       n_neg_channel(databaseconfig->get_n_neg_channel()) {
     std::vector<double> parameters = databaseconfig->get_sensor_parameters();
@@ -46,9 +46,6 @@ void Sensor::initialize(std::vector<double> data_vector, int pressure_macro_inde
         for (int index = 0; index <= data_vector.size(); ++index){ 
             if (index != pressure_macro_index) {
                 offset[index] = data_vector[index];
-            }
-            else {
-                offset[index] = pos_offset;
             }
         }
         ROS_INFO("Initialized!! Please turn on the pump");

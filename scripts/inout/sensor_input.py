@@ -15,7 +15,7 @@ from std_msgs.msg import Float32MultiArray
 
 REF = 5.08           # Reference voltage
 N = 10               # Moving average 필터의 스텝 수
-NUM_CHANNELS = 9     # 사용할 채널 수
+NUM_CHANNELS = 10     # 사용할 채널 수
 
 ADC = ADS1263.ADS1263()
 
@@ -47,7 +47,7 @@ def sensor_in():
     if ADC.ADS1263_init_ADC1('ADS1263_400SPS') == -1:
         exit()
     ADC.ADS1263_SetMode(0)  # 0: singleChannel, 1: diffChannel
-    channels = list(range(NUM_CHANNELS))  # 0~8번 채널
+    channels = list(range(NUM_CHANNELS))  # 0~9번 채널
 
     # 상수 및 재사용할 변수들을 지역 변수에 저장
     ref = REF
@@ -59,7 +59,7 @@ def sensor_in():
     filtered_values = [0.0] * NUM_CHANNELS
 
     while not rospy.is_shutdown():
-        ADC_Value = ADC.ADS1263_GetAll(channels)  # ADC 값을 읽음 (9개 채널)
+        ADC_Value = ADC.ADS1263_GetAll(channels)  # ADC 값을 읽음 (10개 채널)
 
         for i, value in enumerate(ADC_Value):
             # 부호 확인 및 전압 값 변환

@@ -9,7 +9,7 @@ import time
 # ========== 사용자 설정 ==========
 # ref_extended (rl_ref[:2] + ref[:6]) 에서 출력할 인덱스 리스트 (예: [2,3,4,5,6,7])
 # selected_channels = [2, 3, 4, 5, 6, 7]
-selected_channels = [2, 3, 5, 6]
+selected_channels = [2, 3, 4, 5, 6, 7, 8, 9]
 # control 데이터 (micro, macro, atm)를 출력할지 여부
 include_control_data = True
 # ==================================
@@ -67,15 +67,14 @@ def process_data():
     global sen_values, ref_values, mpc_pwm_values, rl_pwm_values, rl_ref_values, start_time, csv_writer, csv_file
 
     # 충분한 데이터가 수신된 경우에만 처리
-    if len(sen_values) >= 9 and len(ref_values) >= 6:
+    if len(sen_values) >= 10 and len(ref_values) >= 6:
         # 로컬 변수 캐싱
         sen = sen_values
         ref = ref_values
         rl_ref = rl_ref_values
         mpc_pwm = mpc_pwm_values
 
-        # ref_extended는 rl_ref의 앞 2개와 ref의 앞 6개를 결합 (총 8개)
-        ref_extended = rl_ref[:2] + ref[:6]
+        ref_extended = rl_ref[:2] + ref[:8]
 
         elapsed_ms = int((time.time() - start_time) * 1000)
         row = [elapsed_ms]
@@ -98,7 +97,7 @@ def process_data():
             # ref 데이터: ref_extended[ch] (존재하지 않으면 0)
             ref_value = ref_extended[ch] if ch < len(ref_extended) else 0
             # sensor 데이터: sen[ch+1] (원래 코드에서 채널에 대해 offset +1 적용)
-            sen_value = sen[ch+1] if (ch+1) < len(sen) else 0
+            sen_value = sen[ch] if (ch) < len(sen) else 0
             error = ref_value - sen_value
             
             if include_control_data:
